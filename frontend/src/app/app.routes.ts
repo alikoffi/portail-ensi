@@ -17,8 +17,13 @@ export const routes: Routes = [
         path: 'tableau-de-bord',
         loadComponent: () =>
           import('@/pages/dashboard/dashboard.component').then((m) => m.DashboardComponent)
+      },
+      {
+        path: 'planning',
+        loadComponent: () =>
+          import('@/pages/planning/planning.component').then((m) => m.PlanningComponent)
       }
-      // Lots suivants : planning, finances, proces-verbaux
+      // Lots suivants : finances, proces-verbaux
     ]
   },
   { path: '**', redirectTo: '' }

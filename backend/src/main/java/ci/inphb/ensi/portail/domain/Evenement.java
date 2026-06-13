@@ -50,6 +50,16 @@ public class Evenement extends AbstractEntity {
     public Evenement() {
     }
 
+    /** Met a jour les champs modifiables de l'evenement. */
+    public void mettreAJour(String nom, LocalDate dateEvent, String heure, String type, String lieu, String description) {
+        this.nom = nom;
+        this.dateEvent = dateEvent;
+        this.heure = heure;
+        this.type = type;
+        this.lieu = lieu;
+        this.description = description;
+    }
+
     @Override
     public Long getId() {
         return id;

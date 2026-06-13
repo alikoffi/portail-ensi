@@ -2,6 +2,7 @@ package ci.inphb.ensi.portail.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -31,6 +32,12 @@ public class GlobalExceptionHandler {
         }
         corps.put("erreurs", erreurs);
         return ResponseEntity.badRequest().body(corps);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccesRefuse(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(corps(HttpStatus.FORBIDDEN, "Accès refusé : action réservée à l'administrateur"));
     }
 
     @ExceptionHandler(Exception.class)

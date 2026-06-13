@@ -10,6 +10,9 @@ import java.util.List;
 
 public interface EvenementRepository extends JpaRepository<Evenement, Long> {
 
+    /** Tous les evenements, du plus recent au plus ancien. */
+    List<Evenement> findAllByOrderByDateEventDesc();
+
     /** Evenements a venir, du plus proche au plus lointain. */
     List<Evenement> findByDateEventGreaterThanEqualOrderByDateEventAsc(LocalDate date);
 
