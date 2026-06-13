@@ -80,3 +80,28 @@ FROM (VALUES
   )
 ) AS v(objet, date_pv, lieu, presents, ordre_du_jour, decisions, signataires)
 WHERE NOT EXISTS (SELECT 1 FROM pv);
+
+-- ---------- Membres ----------
+INSERT INTO membre (nom, prenoms, matricule, email, telephone, specialite, statut, date_adhesion, version)
+SELECT nom, prenoms, matricule, email, telephone, specialite, statut, date_adhesion, 0
+FROM (VALUES
+  ('Koffi',   'Anselme',  'ENSI-001', 'anselme.koffi@inphb.ci',  '0700000001', 'Topographie',  'ACTIF',   CURRENT_DATE - 60),
+  ('Bamba',   'Awa',      'ENSI-002', 'awa.bamba@inphb.ci',      '0700000002', 'SIG',          'ACTIF',   CURRENT_DATE - 58),
+  ('Traore',  'Ismael',   'ENSI-003', 'ismael.traore@inphb.ci',  '0700000003', 'Cartographie', 'ACTIF',   CURRENT_DATE - 55),
+  ('Kone',    'Mariam',   'ENSI-004', 'mariam.kone@inphb.ci',    '0700000004', 'BTP',          'INACTIF', CURRENT_DATE - 50),
+  ('Yao',     'Patrick',  'ENSI-005', 'patrick.yao@inphb.ci',    '0700000005', 'Topographie',  'ACTIF',   CURRENT_DATE - 45)
+) AS v(nom, prenoms, matricule, email, telephone, specialite, statut, date_adhesion)
+WHERE NOT EXISTS (SELECT 1 FROM membre);
+
+-- ---------- Cotisations ----------
+INSERT INTO cotisation (membre_id, periode, montant, date_paiement, note, version)
+SELECT (SELECT id FROM membre WHERE matricule = v.matricule), v.periode, v.montant, v.date_paiement, v.note, 0
+FROM (VALUES
+  ('ENSI-001', 'Janvier 2026',  5000, CURRENT_DATE - 40, NULL),
+  ('ENSI-001', 'Février 2026',  5000, CURRENT_DATE - 10, NULL),
+  ('ENSI-002', 'Janvier 2026',  5000, CURRENT_DATE - 38, NULL),
+  ('ENSI-003', 'Janvier 2026',  5000, CURRENT_DATE - 35, 'Paiement en espèces'),
+  ('ENSI-003', 'Février 2026',  5000, CURRENT_DATE - 8,  NULL),
+  ('ENSI-005', 'Janvier 2026',  5000, CURRENT_DATE - 30, NULL)
+) AS v(matricule, periode, montant, date_paiement, note)
+WHERE NOT EXISTS (SELECT 1 FROM cotisation);

@@ -28,6 +28,7 @@ export class MainLayoutComponent {
     { libelle: 'Tableau de bord', icone: 'pi-home', route: '/tableau-de-bord' },
     { libelle: 'Planning', icone: 'pi-calendar', route: '/planning' },
     { libelle: 'États financiers', icone: 'pi-wallet', route: '/finances' },
+    { libelle: 'Membres', icone: 'pi-users', route: '/membres' },
     { libelle: 'Procès-verbaux', icone: 'pi-file', route: '/proces-verbaux' }
   ];
 

@@ -32,6 +32,10 @@ export const routes: Routes = [
         path: 'proces-verbaux',
         loadComponent: () =>
           import('@/pages/proces-verbaux/proces-verbaux.component').then((m) => m.ProcesVerbauxComponent)
+      },
+      {
+        path: 'membres',
+        loadComponent: () => import('@/pages/membres/membres.component').then((m) => m.MembresComponent)
       }
     ]
   },
