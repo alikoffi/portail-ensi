@@ -17,4 +17,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     /** Dernieres transactions, les plus recentes d'abord. */
     List<Transaction> findTop4ByOrderByDateTxDescIdDesc();
+
+    /** Toutes les transactions, les plus recentes d'abord. */
+    List<Transaction> findAllByOrderByDateTxDescIdDesc();
 }

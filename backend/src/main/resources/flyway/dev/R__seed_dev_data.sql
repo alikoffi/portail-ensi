@@ -35,3 +35,23 @@ FROM (VALUES
   ('Cotisations promotion - Fevrier', 'RECETTE', 120000, CURRENT_DATE - 2,  'Cotisations',   NULL)
 ) AS v(libelle, type, montant, date_tx, categorie, note)
 WHERE NOT EXISTS (SELECT 1 FROM transaction);
+
+-- ---------- Bilan actif ----------
+INSERT INTO bilan_actif (rubrique, montant, version)
+SELECT rubrique, montant, 0
+FROM (VALUES
+  ('Tresorerie (caisse + banque)', 415000),
+  ('Materiel et equipements',      120000),
+  ('Creances (cotisations dues)',   65000)
+) AS v(rubrique, montant)
+WHERE NOT EXISTS (SELECT 1 FROM bilan_actif);
+
+-- ---------- Bilan passif ----------
+INSERT INTO bilan_passif (rubrique, montant, version)
+SELECT rubrique, montant, 0
+FROM (VALUES
+  ('Fonds associatif',        500000),
+  ('Dettes fournisseurs',      60000),
+  ('Provisions evenements',    40000)
+) AS v(rubrique, montant)
+WHERE NOT EXISTS (SELECT 1 FROM bilan_passif);

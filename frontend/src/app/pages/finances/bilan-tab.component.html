@@ -1,0 +1,147 @@
+<div class="space-y-5">
+  @if (erreur()) {
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm">
+      <i class="pi pi-exclamation-circle"></i> {{ erreur() }}
+    </div>
+  }
+
+  <!-- Bandeau équilibre -->
+  @if (!chargement() && bilan()) {
+    <div class="rounded-xl p-4 flex items-center gap-3"
+      [class.bg-emerald-50]="bilan()!.equilibre" [class.text-emerald-700]="bilan()!.equilibre"
+      [class.bg-amber-50]="!bilan()!.equilibre" [class.text-amber-700]="!bilan()!.equilibre">
+      <i class="pi text-xl" [class.pi-check-circle]="bilan()!.equilibre" [class.pi-exclamation-triangle]="!bilan()!.equilibre"></i>
+      <div>
+        <div class="font-semibold">{{ bilan()!.equilibre ? 'Bilan équilibré' : 'Bilan déséquilibré' }}</div>
+        <div class="text-sm opacity-80">
+          Total actif {{ formater(bilan()!.totalActif) }} · Total passif {{ formater(bilan()!.totalPassif) }}
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (chargement()) {
+    <div class="grid gap-5 md:grid-cols-2">
+      <div class="h-64 rounded-xl bg-gray-100 animate-pulse"></div>
+      <div class="h-64 rounded-xl bg-gray-100 animate-pulse"></div>
+    </div>
+  } @else {
+    <div class="grid gap-5 md:grid-cols-2">
+      <!-- ACTIF -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-ensi-50/50">
+          <h3 class="font-bold text-ensi-700"><i class="pi pi-arrow-down-left mr-1.5"></i> Actif</h3>
+          @if (estAdmin()) {
+            <button (click)="ouvrirAjout('actif')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-ensi-700 hover:bg-ensi-100 transition-colors">
+              <i class="pi pi-plus"></i> Rubrique
+            </button>
+          }
+        </div>
+        @if ((bilan()?.actifs?.length ?? 0) === 0) {
+          <p class="text-sm text-gray-400 py-10 text-center">Aucune rubrique d'actif.</p>
+        } @else {
+          <ul class="divide-y divide-gray-50">
+            @for (r of bilan()?.actifs; track r.id) {
+              <li class="flex items-center justify-between gap-3 px-5 py-3">
+                <span class="text-sm text-gray-700">{{ r.rubrique }}</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-sm font-semibold text-gray-800">{{ formater(r.montant) }}</span>
+                  @if (estAdmin()) {
+                    <button (click)="demanderSuppression('actif', r)" class="flex items-center justify-center w-7 h-7 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-600" title="Supprimer"><i class="pi pi-trash text-xs"></i></button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+        <div class="flex items-center justify-between px-5 py-3 border-t-2 border-ensi-100 bg-ensi-50/30">
+          <span class="text-sm font-semibold text-ensi-700">Total actif</span>
+          <span class="font-bold text-ensi-700">{{ formater(bilan()?.totalActif) }}</span>
+        </div>
+      </div>
+
+      <!-- PASSIF -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-amber-50/50">
+          <h3 class="font-bold text-amber-700"><i class="pi pi-arrow-up-right mr-1.5"></i> Passif</h3>
+          @if (estAdmin()) {
+            <button (click)="ouvrirAjout('passif')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors">
+              <i class="pi pi-plus"></i> Rubrique
+            </button>
+          }
+        </div>
+        @if ((bilan()?.passifs?.length ?? 0) === 0) {
+          <p class="text-sm text-gray-400 py-10 text-center">Aucune rubrique de passif.</p>
+        } @else {
+          <ul class="divide-y divide-gray-50">
+            @for (r of bilan()?.passifs; track r.id) {
+              <li class="flex items-center justify-between gap-3 px-5 py-3">
+                <span class="text-sm text-gray-700">{{ r.rubrique }}</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-sm font-semibold text-gray-800">{{ formater(r.montant) }}</span>
+                  @if (estAdmin()) {
+                    <button (click)="demanderSuppression('passif', r)" class="flex items-center justify-center w-7 h-7 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-600" title="Supprimer"><i class="pi pi-trash text-xs"></i></button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+        <div class="flex items-center justify-between px-5 py-3 border-t-2 border-amber-100 bg-amber-50/30">
+          <span class="text-sm font-semibold text-amber-700">Total passif</span>
+          <span class="font-bold text-amber-700">{{ formater(bilan()?.totalPassif) }}</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal ajout rubrique -->
+@if (modalOuvert()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="fermerModal()">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">Nouvelle rubrique — {{ sectionCourante() === 'actif' ? 'Actif' : 'Passif' }}</h2>
+        <button (click)="fermerModal()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="enregistrer()" class="p-6 space-y-4">
+        @if (erreurFormulaire()) {
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreurFormulaire() }}</div>
+        }
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Rubrique *</label>
+          <input type="text" formControlName="rubrique" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (form.controls.rubrique.touched && form.controls.rubrique.invalid) { <p class="mt-1 text-xs text-red-600">La rubrique est obligatoire.</p> }
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Montant (FCFA) *</label>
+          <input type="number" formControlName="montant" min="0" step="0.01" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (form.controls.montant.touched && form.controls.montant.invalid) { <p class="mt-1 text-xs text-red-600">Montant positif requis.</p> }
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" (click)="fermerModal()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="enregistrement()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
+            @if (enregistrement()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } Ajouter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal suppression -->
+@if (aSupprimer()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="annulerSuppression()">
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-600 mx-auto"><i class="pi pi-exclamation-triangle text-xl"></i></div>
+      <h2 class="mt-4 text-center font-bold text-gray-800">Supprimer la rubrique ?</h2>
+      <p class="mt-1 text-center text-sm text-gray-500">« {{ aSupprimer()?.rubrique?.rubrique }} » sera définitivement supprimée.</p>
+      <div class="mt-6 flex items-center gap-3">
+        <button (click)="annulerSuppression()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+        <button (click)="confirmerSuppression()" [disabled]="suppressionEnCours()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60">
+          @if (suppressionEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-trash"></i> } Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+}

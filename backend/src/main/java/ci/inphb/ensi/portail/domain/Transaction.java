@@ -55,6 +55,17 @@ public class Transaction extends AbstractEntity {
     public Transaction() {
     }
 
+    /** Met a jour les champs modifiables de la transaction. */
+    public void mettreAJour(String libelle, TypeTransaction type, BigDecimal montant,
+                            LocalDate dateTx, String categorie, String note) {
+        this.libelle = libelle;
+        this.type = type;
+        this.montant = montant;
+        this.dateTx = dateTx;
+        this.categorie = categorie;
+        this.note = note;
+    }
+
     @Override
     public Long getId() {
         return id;
