@@ -27,8 +27,12 @@ export const routes: Routes = [
         path: 'finances',
         loadComponent: () =>
           import('@/pages/finances/finances.component').then((m) => m.FinancesComponent)
+      },
+      {
+        path: 'proces-verbaux',
+        loadComponent: () =>
+          import('@/pages/proces-verbaux/proces-verbaux.component').then((m) => m.ProcesVerbauxComponent)
       }
-      // Lot suivant : proces-verbaux
     ]
   },
   { path: '**', redirectTo: '' }

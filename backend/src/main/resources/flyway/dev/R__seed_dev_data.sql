@@ -55,3 +55,28 @@ FROM (VALUES
   ('Provisions evenements',    40000)
 ) AS v(rubrique, montant)
 WHERE NOT EXISTS (SELECT 1 FROM bilan_passif);
+
+-- ---------- Proces-verbaux ----------
+INSERT INTO pv (objet, date_pv, lieu, presents, ordre_du_jour, decisions, signataires, version)
+SELECT objet, date_pv, lieu, presents, ordre_du_jour, decisions, signataires, 0
+FROM (VALUES
+  (
+    'Reunion de constitution du bureau',
+    CURRENT_DATE - 45,
+    'Salle de reunion - INPHB',
+    'President, Vice-president, Tresorier, Secretaire, 12 membres',
+    E'1. Election du bureau\n2. Definition des cotisations\n3. Calendrier previsionnel',
+    E'- Bureau elu a l''unanimite\n- Cotisation fixee a 5000 FCFA / membre / mois\n- Premiere assemblee planifiee',
+    'Le President, Le Secretaire'
+  ),
+  (
+    'Reunion budgetaire trimestrielle',
+    CURRENT_DATE - 10,
+    'Amphi A - INPHB',
+    'President, Tresorier, Secretaire, 20 membres',
+    E'1. Point de tresorerie\n2. Validation des depenses\n3. Preparation de la soiree d''integration',
+    E'- Solde valide a 415 000 FCFA\n- Budget integration approuve (75 000 FCFA)\n- Commission logistique designee',
+    'Le President, Le Tresorier, Le Secretaire'
+  )
+) AS v(objet, date_pv, lieu, presents, ordre_du_jour, decisions, signataires)
+WHERE NOT EXISTS (SELECT 1 FROM pv);
