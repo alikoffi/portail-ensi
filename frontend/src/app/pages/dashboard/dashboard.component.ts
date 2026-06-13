@@ -7,7 +7,17 @@ import { Statistique, TableauBord } from '@/core/models/tableau-bord.model';
 
 Chart.register(...registerables);
 
-const COULEURS_ENSI = ['#0b5d3b', '#1f7d56', '#3f9e74', '#6dba96', '#9fd3b9', '#c9e7d7'];
+// Palette diversifiee pour distinguer les categories (le vert ENSI reste en tete).
+const COULEURS_CATEGORIES = [
+  '#0b5d3b', // vert ENSI
+  '#f59e0b', // ambre
+  '#3b82f6', // bleu
+  '#ef4444', // rouge
+  '#8b5cf6', // violet
+  '#14b8a6', // turquoise
+  '#ec4899', // rose
+  '#64748b'  // ardoise
+];
 
 @Component({
   selector: 'app-dashboard',
@@ -117,16 +127,43 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const elDepenses = this.canvasDepenses()?.nativeElement;
     if (elDepenses) {
       this.chartDepenses?.destroy();
+      const formatFcfa = (valeur: number) => new Intl.NumberFormat('fr-FR').format(valeur) + ' FCFA';
       this.chartDepenses = new Chart(elDepenses, {
         type: 'doughnut',
         data: {
           labels: stats.categoriesDepenses,
-          datasets: [{ data: stats.montantsDepenses, backgroundColor: COULEURS_ENSI, borderWidth: 0 }]
+          datasets: [{ data: stats.montantsDepenses, backgroundColor: COULEURS_CATEGORIES, borderWidth: 0 }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } }
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                boxWidth: 12,
+                font: { size: 11 },
+                // Legende = libelle + montant + unite FCFA
+                generateLabels: (chart) => {
+                  const labels = (chart.data.labels ?? []) as string[];
+                  const valeurs = (chart.data.datasets[0].data ?? []) as number[];
+                  const couleurs = chart.data.datasets[0].backgroundColor as string[];
+                  return labels.map((label, i) => ({
+                    text: `${label} — ${formatFcfa(valeurs[i])}`,
+                    fillStyle: couleurs[i],
+                    strokeStyle: couleurs[i],
+                    lineWidth: 0,
+                    index: i
+                  }));
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.label} : ${formatFcfa(Number(ctx.parsed))}`
+              }
+            }
+          }
         }
       });
     }
