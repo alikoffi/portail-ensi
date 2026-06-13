@@ -26,3 +26,10 @@ export interface TableauBord {
   prochainsEvenements: EvenementApercu[];
   dernieresTransactions: TransactionApercu[];
 }
+
+export interface Statistique {
+  moisLabels: string[];
+  soldeCumule: number[];
+  categoriesDepenses: string[];
+  montantsDepenses: number[];
+}

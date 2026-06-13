@@ -41,6 +41,28 @@
     }
   </div>
 
+  <!-- Graphiques -->
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-gray-800">Évolution du solde</h2>
+        <i class="pi pi-chart-line text-ensi-600"></i>
+      </div>
+      <div class="h-64">
+        <canvas #canvasSolde></canvas>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-gray-800">Dépenses par catégorie</h2>
+        <i class="pi pi-chart-pie text-ensi-600"></i>
+      </div>
+      <div class="h-64">
+        <canvas #canvasDepenses></canvas>
+      </div>
+    </div>
+  </div>
+
   <div class="grid gap-6 lg:grid-cols-2">
     <!-- Prochains évènements -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">

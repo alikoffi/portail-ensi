@@ -7,10 +7,14 @@ import ci.inphb.ensi.portail.presentation.dto.BilanDto;
 import ci.inphb.ensi.portail.presentation.dto.RubriqueBilanDto;
 import ci.inphb.ensi.portail.repository.BilanActifRepository;
 import ci.inphb.ensi.portail.repository.BilanPassifRepository;
+import ci.inphb.ensi.portail.service.PdfService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Gestion du bilan simplifie (rubriques actif/passif).
@@ -20,10 +24,22 @@ public class BilanFacade {
 
     private final BilanActifRepository actifRepository;
     private final BilanPassifRepository passifRepository;
+    private final PdfService pdfService;
 
-    public BilanFacade(BilanActifRepository actifRepository, BilanPassifRepository passifRepository) {
+    public BilanFacade(BilanActifRepository actifRepository, BilanPassifRepository passifRepository,
+                       PdfService pdfService) {
         this.actifRepository = actifRepository;
         this.passifRepository = passifRepository;
+        this.pdfService = pdfService;
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exporterPdf() {
+        BilanDto bilan = resume();
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("bilan", bilan);
+        variables.put("dateEdition", LocalDate.now());
+        return pdfService.genererDepuisTemplate("pdf/bilan", variables);
     }
 
     @Transactional(readOnly = true)

@@ -41,6 +41,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	// Generation PDF (HTML -> PDF)
+	implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
+	implementation 'com.openhtmltopdf:openhtmltopdf-slf4j:1.0.10'
 
 	implementation "org.flywaydb:flyway-core:$flywaydbVersion"
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'

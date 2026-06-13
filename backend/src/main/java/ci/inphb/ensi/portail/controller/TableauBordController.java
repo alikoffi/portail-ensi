@@ -2,6 +2,7 @@ package ci.inphb.ensi.portail.controller;
 
 import ci.inphb.ensi.portail.configuration.logger.Logged;
 import ci.inphb.ensi.portail.facade.TableauBordFacade;
+import ci.inphb.ensi.portail.presentation.dto.StatistiqueDto;
 import ci.inphb.ensi.portail.presentation.dto.TableauBordDto;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,5 +24,11 @@ public class TableauBordController {
     @Logged
     public TableauBordDto resume() {
         return tableauBordFacade.resume();
+    }
+
+    @GetMapping("/statistiques")
+    @Logged
+    public StatistiqueDto statistiques() {
+        return tableauBordFacade.statistiques();
     }
 }

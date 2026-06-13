@@ -1,8 +1,13 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Chart, registerables } from 'chart.js';
 import { AuthService } from '@/core/services/auth.service';
 import { TableauBordService } from '@/core/services/tableau-bord.service';
-import { TableauBord } from '@/core/models/tableau-bord.model';
+import { Statistique, TableauBord } from '@/core/models/tableau-bord.model';
+
+Chart.register(...registerables);
+
+const COULEURS_ENSI = ['#0b5d3b', '#1f7d56', '#3f9e74', '#6dba96', '#9fd3b9', '#c9e7d7'];
 
 @Component({
   selector: 'app-dashboard',
@@ -10,7 +15,7 @@ import { TableauBord } from '@/core/models/tableau-bord.model';
   imports: [CommonModule],
   templateUrl: './dashboard.component.html'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit {
   private readonly authService = inject(AuthService);
   private readonly tableauBordService = inject(TableauBordService);
 
@@ -18,6 +23,14 @@ export class DashboardComponent implements OnInit {
   readonly chargement = signal(true);
   readonly erreur = signal<string | null>(null);
   readonly donnees = signal<TableauBord | null>(null);
+  readonly stats = signal<Statistique | null>(null);
+
+  readonly canvasSolde = viewChild<ElementRef<HTMLCanvasElement>>('canvasSolde');
+  readonly canvasDepenses = viewChild<ElementRef<HTMLCanvasElement>>('canvasDepenses');
+
+  private chartSolde?: Chart;
+  private chartDepenses?: Chart;
+  private vueInitialisee = false;
 
   readonly indicateurs = computed(() => {
     const d = this.donnees();
@@ -33,6 +46,11 @@ export class DashboardComponent implements OnInit {
     this.charger();
   }
 
+  ngAfterViewInit(): void {
+    this.vueInitialisee = true;
+    this.dessinerGraphiques();
+  }
+
   charger(): void {
     this.chargement.set(true);
     this.erreur.set(null);
@@ -46,6 +64,13 @@ export class DashboardComponent implements OnInit {
         this.chargement.set(false);
       }
     });
+    this.tableauBordService.statistiques().subscribe({
+      next: (s) => {
+        this.stats.set(s);
+        this.dessinerGraphiques();
+      },
+      error: () => {}
+    });
   }
 
   formaterMontant(valeur: number | undefined): string {
@@ -53,5 +78,57 @@ export class DashboardComponent implements OnInit {
       return '—';
     }
     return new Intl.NumberFormat('fr-FR').format(valeur) + ' FCFA';
+  }
+
+  private dessinerGraphiques(): void {
+    const stats = this.stats();
+    if (!this.vueInitialisee || !stats) {
+      return;
+    }
+
+    const elSolde = this.canvasSolde()?.nativeElement;
+    if (elSolde) {
+      this.chartSolde?.destroy();
+      this.chartSolde = new Chart(elSolde, {
+        type: 'line',
+        data: {
+          labels: stats.moisLabels,
+          datasets: [
+            {
+              label: 'Solde cumulé (FCFA)',
+              data: stats.soldeCumule,
+              borderColor: '#0b5d3b',
+              backgroundColor: 'rgba(11, 93, 59, 0.08)',
+              fill: true,
+              tension: 0.3,
+              pointBackgroundColor: '#0b5d3b'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { ticks: { callback: (v) => new Intl.NumberFormat('fr-FR').format(Number(v)) } } }
+        }
+      });
+    }
+
+    const elDepenses = this.canvasDepenses()?.nativeElement;
+    if (elDepenses) {
+      this.chartDepenses?.destroy();
+      this.chartDepenses = new Chart(elDepenses, {
+        type: 'doughnut',
+        data: {
+          labels: stats.categoriesDepenses,
+          datasets: [{ data: stats.montantsDepenses, backgroundColor: COULEURS_ENSI, borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } }
+        }
+      });
+    }
   }
 }

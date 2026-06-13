@@ -32,6 +32,10 @@
       <button (click)="typeFiltre.set('RECETTE')" class="px-3 py-1.5 rounded-md text-xs font-medium" [class.bg-white]="typeFiltre() === 'RECETTE'" [class.text-emerald-600]="typeFiltre() === 'RECETTE'" [class.shadow-sm]="typeFiltre() === 'RECETTE'" [class.text-gray-500]="typeFiltre() !== 'RECETTE'">Recettes</button>
       <button (click)="typeFiltre.set('DEPENSE')" class="px-3 py-1.5 rounded-md text-xs font-medium" [class.bg-white]="typeFiltre() === 'DEPENSE'" [class.text-rose-600]="typeFiltre() === 'DEPENSE'" [class.shadow-sm]="typeFiltre() === 'DEPENSE'" [class.text-gray-500]="typeFiltre() !== 'DEPENSE'">Dépenses</button>
     </div>
+    <button (click)="exporterPdf()" [disabled]="exportEnCours()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-60 transition-colors">
+      @if (exportEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-file-pdf"></i> }
+      Exporter PDF
+    </button>
     @if (estAdmin()) {
       <button (click)="ouvrirCreation()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 transition-colors">
         <i class="pi pi-plus"></i> Nouvelle transaction

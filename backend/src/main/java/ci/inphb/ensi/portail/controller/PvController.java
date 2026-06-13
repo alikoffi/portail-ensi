@@ -5,6 +5,7 @@ import ci.inphb.ensi.portail.facade.PvFacade;
 import ci.inphb.ensi.portail.presentation.dto.PvDto;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
+import static ci.inphb.ensi.portail.utils.PdfResponse.pdf;
 
 @RestController
 @RequestMapping("/ws/pv")
@@ -59,5 +62,11 @@ public class PvController {
     @PreAuthorize("hasRole('ADMIN')")
     public void supprimer(@PathVariable Long id) {
         pvFacade.supprimer(id);
+    }
+
+    @GetMapping("/export/pdf/{id}")
+    @Logged
+    public ResponseEntity<byte[]> exporterPdf(@PathVariable Long id) {
+        return pdf(pvFacade.exporterPdf(id), "proces-verbal-" + id + ".pdf");
     }
 }

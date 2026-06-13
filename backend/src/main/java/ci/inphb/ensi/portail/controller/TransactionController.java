@@ -5,6 +5,7 @@ import ci.inphb.ensi.portail.facade.TransactionFacade;
 import ci.inphb.ensi.portail.presentation.dto.TransactionDto;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
+import static ci.inphb.ensi.portail.utils.PdfResponse.pdf;
 
 @RestController
 @RequestMapping("/ws/transaction")
@@ -53,5 +56,11 @@ public class TransactionController {
     @PreAuthorize("hasRole('ADMIN')")
     public void supprimer(@PathVariable Long id) {
         transactionFacade.supprimer(id);
+    }
+
+    @GetMapping("/export/pdf")
+    @Logged
+    public ResponseEntity<byte[]> exporterPdf() {
+        return pdf(transactionFacade.exporterPdf(), "journal-transactions.pdf");
     }
 }

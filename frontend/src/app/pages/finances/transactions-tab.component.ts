@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@/core/services/auth.service';
 import { TransactionService } from '@/core/services/transaction.service';
+import { ExportService } from '@/core/services/export.service';
 import { Transaction, TypeTransaction } from '@/core/models/transaction.model';
 
 @Component({
@@ -14,9 +15,11 @@ import { Transaction, TypeTransaction } from '@/core/models/transaction.model';
 export class TransactionsTabComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly transactionService = inject(TransactionService);
+  private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
 
   readonly estAdmin = this.authService.estAdmin;
+  readonly exportEnCours = signal(false);
 
   readonly transactions = signal<Transaction[]>([]);
   readonly chargement = signal(true);
@@ -85,6 +88,20 @@ export class TransactionsTabComponent implements OnInit {
 
   formater(montant: number): string {
     return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
+  }
+
+  exporterPdf(): void {
+    this.exportEnCours.set(true);
+    this.exportService.journalPdf().subscribe({
+      next: (blob) => {
+        this.exportService.telecharger(blob, 'journal-transactions.pdf');
+        this.exportEnCours.set(false);
+      },
+      error: () => {
+        this.exportEnCours.set(false);
+        this.erreur.set("L'export PDF a échoué.");
+      }
+    });
   }
 
   ouvrirCreation(): void {

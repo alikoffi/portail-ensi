@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        @page { size: A4; margin: 1.8cm 1.6cm; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Helvetica', sans-serif; color: #1f2937; font-size: 11px; }
+        .entete { border-bottom: 3px solid #0b5d3b; padding-bottom: 10px; margin-bottom: 18px; }
+        .entete .titre { color: #0b5d3b; font-size: 20px; font-weight: bold; }
+        .entete .sous { color: #6b7280; font-size: 11px; }
+        .entete .doc { margin-top: 8px; font-size: 15px; font-weight: bold; }
+        .meta { color: #6b7280; font-size: 10px; margin-bottom: 14px; }
+        .totaux { width: 100%; margin-bottom: 16px; border-collapse: collapse; }
+        .totaux td { width: 33%; padding: 10px; border: 1px solid #e5e7eb; }
+        .totaux .lib { font-size: 10px; color: #6b7280; }
+        .totaux .val { font-size: 15px; font-weight: bold; }
+        .recette { color: #047857; }
+        .depense { color: #be123c; }
+        .solde { color: #0b5d3b; }
+        table.journal { width: 100%; border-collapse: collapse; }
+        table.journal th { background: #0b5d3b; color: #fff; text-align: left; padding: 7px 8px; font-size: 10px; }
+        table.journal td { padding: 6px 8px; border-bottom: 1px solid #eef2f0; }
+        table.journal tr:nth-child(even) td { background: #f7faf8; }
+        .montant { text-align: right; font-weight: bold; }
+        .pied { margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 8px; color: #9ca3af; font-size: 9px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="entete">
+    <div class="titre">Portail ENSI</div>
+    <div class="sous">INPHB &#8212; Yamoussoukro &#183; Promotion ENSI</div>
+    <div class="doc">Journal des transactions</div>
+</div>
+
+<div class="meta">
+    Édité le <span th:text="${#temporals.format(dateEdition, 'dd/MM/yyyy')}">01/01/2026</span>
+</div>
+
+<table class="totaux">
+    <tr>
+        <td>
+            <div class="lib">Recettes totales</div>
+            <div class="val recette"><span th:text="${#numbers.formatInteger(totalRecettes, 1, 'WHITESPACE')}">0</span> FCFA</div>
+        </td>
+        <td>
+            <div class="lib">Dépenses totales</div>
+            <div class="val depense"><span th:text="${#numbers.formatInteger(totalDepenses, 1, 'WHITESPACE')}">0</span> FCFA</div>
+        </td>
+        <td>
+            <div class="lib">Solde</div>
+            <div class="val solde"><span th:text="${#numbers.formatInteger(solde, 1, 'WHITESPACE')}">0</span> FCFA</div>
+        </td>
+    </tr>
+</table>
+
+<table class="journal">
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th>Libellé</th>
+        <th>Catégorie</th>
+        <th>Type</th>
+        <th style="text-align:right;">Montant</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="t : ${transactions}">
+        <td th:text="${#temporals.format(t.dateTx, 'dd/MM/yyyy')}">01/01/2026</td>
+        <td th:text="${t.libelle}">Libellé</td>
+        <td th:text="${t.categorie}">Catégorie</td>
+        <td th:text="${t.type}">RECETTE</td>
+        <td class="montant"
+            th:classappend="${t.type == 'RECETTE'} ? 'recette' : 'depense'"
+            th:text="${(t.type == 'RECETTE' ? '+' : '-') + #numbers.formatInteger(t.montant, 1, 'WHITESPACE') + ' FCFA'}">+0 FCFA</td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="pied">
+    Portail ENSI &#183; Document généré automatiquement &#183; INPHB Yamoussoukro
+</div>
+</body>
+</html>

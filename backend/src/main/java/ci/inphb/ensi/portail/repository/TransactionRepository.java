@@ -20,4 +20,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     /** Toutes les transactions, les plus recentes d'abord. */
     List<Transaction> findAllByOrderByDateTxDescIdDesc();
+
+    /** Toutes les transactions, les plus anciennes d'abord (pour l'evolution). */
+    List<Transaction> findAllByOrderByDateTxAscIdAsc();
+
+    /** Total des depenses par categorie, du plus eleve au plus faible. */
+    @Query("SELECT t.categorie, SUM(t.montant) FROM Transaction t "
+            + "WHERE t.type = :type GROUP BY t.categorie ORDER BY SUM(t.montant) DESC")
+    List<Object[]> totalParCategorie(@Param("type") TypeTransaction type);
 }

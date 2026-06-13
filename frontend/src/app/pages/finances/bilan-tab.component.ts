@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@/core/services/auth.service';
 import { BilanService } from '@/core/services/bilan.service';
+import { ExportService } from '@/core/services/export.service';
 import { Bilan, RubriqueBilan, SectionBilan } from '@/core/models/bilan.model';
 
 @Component({
@@ -14,9 +15,11 @@ import { Bilan, RubriqueBilan, SectionBilan } from '@/core/models/bilan.model';
 export class BilanTabComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly bilanService = inject(BilanService);
+  private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
 
   readonly estAdmin = this.authService.estAdmin;
+  readonly exportEnCours = signal(false);
 
   readonly bilan = signal<Bilan | null>(null);
   readonly chargement = signal(true);
@@ -59,6 +62,20 @@ export class BilanTabComponent implements OnInit {
       return '— FCFA';
     }
     return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
+  }
+
+  exporterPdf(): void {
+    this.exportEnCours.set(true);
+    this.exportService.bilanPdf().subscribe({
+      next: (blob) => {
+        this.exportService.telecharger(blob, 'bilan.pdf');
+        this.exportEnCours.set(false);
+      },
+      error: () => {
+        this.exportEnCours.set(false);
+        this.erreur.set("L'export PDF a échoué.");
+      }
+    });
   }
 
   ouvrirAjout(section: SectionBilan): void {

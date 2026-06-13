@@ -1,4 +1,11 @@
 <div class="space-y-5">
+  <div class="flex justify-end">
+    <button (click)="exporterPdf()" [disabled]="exportEnCours()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-60 transition-colors">
+      @if (exportEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-file-pdf"></i> }
+      Exporter le bilan (PDF)
+    </button>
+  </div>
+
   @if (erreur()) {
     <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm">
       <i class="pi pi-exclamation-circle"></i> {{ erreur() }}

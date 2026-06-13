@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@/core/services/auth.service';
 import { PvService } from '@/core/services/pv.service';
+import { ExportService } from '@/core/services/export.service';
 import { Pv } from '@/core/models/pv.model';
 
 @Component({
@@ -14,9 +15,11 @@ import { Pv } from '@/core/models/pv.model';
 export class ProcesVerbauxComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly pvService = inject(PvService);
+  private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
 
   readonly estAdmin = this.authService.estAdmin;
+  readonly exportEnCours = signal(false);
 
   readonly pvs = signal<Pv[]>([]);
   readonly chargement = signal(true);
@@ -81,6 +84,23 @@ export class ProcesVerbauxComponent implements OnInit {
 
   fermerDetail(): void {
     this.pvSelectionne.set(null);
+  }
+
+  exporterPdf(pv: Pv): void {
+    if (!pv.id) {
+      return;
+    }
+    this.exportEnCours.set(true);
+    this.exportService.pvPdf(pv.id).subscribe({
+      next: (blob) => {
+        this.exportService.telecharger(blob, `proces-verbal-${pv.id}.pdf`);
+        this.exportEnCours.set(false);
+      },
+      error: () => {
+        this.exportEnCours.set(false);
+        this.erreur.set("L'export PDF a échoué.");
+      }
+    });
   }
 
   // ---------- Formulaire ----------
