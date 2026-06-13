@@ -33,7 +33,7 @@ security · configuration · exception · enums · utils
 | **Lot 2** | Planning (CRUD évènements) | ✅ fait |
 | **Lot 3** | États financiers (transactions + bilan) | ✅ fait |
 | **Lot 4** | Procès-verbaux (CRUD) | ✅ fait |
-| Lot 5 | Graphiques + export PDF | à venir |
+| **Lot 5** | Graphiques (Chart.js) + export PDF | ✅ fait |
 
 ## Démarrage local
 
