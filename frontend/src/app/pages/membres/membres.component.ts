@@ -99,10 +99,19 @@ export class MembresComponent implements OnInit, AfterViewInit {
     return map;
   });
 
+  readonly retardParMembre = computed(() => {
+    const map = new Map<number, number>();
+    for (const r of this.recouvrement()?.membres ?? []) {
+      map.set(r.id, r.moisEnRetard ?? 0);
+    }
+    return map;
+  });
+
   /** Lignes aplaties pour le p-table (tri + filtres par colonne). */
   readonly lignesMembres = computed<LigneMembre[]>(() => {
     const totals = this.totalParMembre();
     const derniers = this.dernierParMembre();
+    const retards = this.retardParMembre();
     return this.membres().map((m) => ({
       membre: m,
       id: m.id!,
@@ -111,7 +120,8 @@ export class MembresComponent implements OnInit, AfterViewInit {
       specialite: m.specialite ?? '',
       statut: m.statut,
       totalCotise: totals.get(m.id!) ?? 0,
-      dernierPaiement: derniers.get(m.id!) ?? null
+      dernierPaiement: derniers.get(m.id!) ?? null,
+      moisEnRetard: retards.get(m.id!) ?? 0
     }));
   });
 
@@ -226,6 +236,18 @@ export class MembresComponent implements OnInit, AfterViewInit {
       return '0 FCFA';
     }
     return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
+  }
+
+  /** "2026-05" -> "mai 2026". */
+  formaterPeriode(periode: string | undefined): string {
+    if (!periode) {
+      return '';
+    }
+    const [annee, mois] = periode.split('-').map(Number);
+    if (!annee || !mois) {
+      return periode;
+    }
+    return new Date(annee, mois - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
   }
 
   totalMembre(id: number | undefined): number {

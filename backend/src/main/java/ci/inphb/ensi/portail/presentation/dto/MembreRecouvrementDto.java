@@ -17,8 +17,10 @@ public class MembreRecouvrementDto {
     private BigDecimal totalCotise;
     private long nombrePaiements;
     private LocalDate dernierPaiement;
+    private int moisEnRetard;
 
-    public MembreRecouvrementDto(Membre membre, BigDecimal totalCotise, long nombrePaiements, LocalDate dernierPaiement) {
+    public MembreRecouvrementDto(Membre membre, BigDecimal totalCotise, long nombrePaiements,
+                                 LocalDate dernierPaiement, int moisEnRetard) {
         this.id = membre.getId();
         this.nom = membre.getNom();
         this.prenoms = membre.getPrenoms();
@@ -26,6 +28,7 @@ public class MembreRecouvrementDto {
         this.totalCotise = totalCotise;
         this.nombrePaiements = nombrePaiements;
         this.dernierPaiement = dernierPaiement;
+        this.moisEnRetard = moisEnRetard;
     }
 
     public Long getId() {
@@ -54,5 +57,9 @@ public class MembreRecouvrementDto {
 
     public LocalDate getDernierPaiement() {
         return dernierPaiement;
+    }
+
+    public int getMoisEnRetard() {
+        return moisEnRetard;
     }
 }

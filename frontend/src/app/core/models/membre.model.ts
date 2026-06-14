@@ -30,6 +30,7 @@ export interface MembreRecouvrement {
   totalCotise: number;
   nombrePaiements: number;
   dernierPaiement?: string | null;
+  moisEnRetard: number;
 }
 
 /** Ligne aplatie pour le tableau des membres (tri/filtre PrimeNG). */
@@ -42,6 +43,7 @@ export interface LigneMembre {
   statut: StatutMembre;
   totalCotise: number;
   dernierPaiement: string | null;
+  moisEnRetard: number;
 }
 
 export interface Recouvrement {

@@ -35,9 +35,6 @@ public class RappelService {
     @Value("${app.rappel.jours-evenement:3}")
     private int joursEvenement;
 
-    @Value("${app.rappel.jours-retard-cotisation:30}")
-    private int joursRetardCotisation;
-
     public RappelService(EvenementRepository evenementRepository,
                          UtilisateurRepository utilisateurRepository,
                          MembreFacade membreFacade,
@@ -64,11 +61,9 @@ public class RappelService {
                 .findByDateEventBetweenOrderByDateEventAsc(aujourdHui, aujourdHui.plusDays(joursEvenement))
                 .stream().map(EvenementDto::new).toList();
 
-        LocalDate limite = aujourdHui.minusDays(joursRetardCotisation);
         List<String> membresEnRetard = membreFacade.recouvrement().getMembres().stream()
-                .filter(m -> "ACTIF".equals(m.getStatut()))
-                .filter(m -> m.getDernierPaiement() == null || m.getDernierPaiement().isBefore(limite))
-                .map(this::nomComplet)
+                .filter(m -> m.getMoisEnRetard() > 0)
+                .map(m -> nomComplet(m) + " — " + m.getMoisEnRetard() + " mois")
                 .toList();
 
         List<Utilisateur> destinataires = utilisateurRepository.findByActifTrueAndEmailIsNotNull().stream()

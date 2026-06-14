@@ -96,14 +96,17 @@ FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM membre);
 
 -- ---------- Cotisations ----------
+-- Periodes au format AAAA-MM, relatives au mois courant :
+--   M2 = il y a 2 mois (mois d'adhesion), M1 = mois precedent (dernier mois echu).
+-- Koffi & Traore a jour (M2 + M1) ; Bamba en retard d'1 mois (M2 seul) ;
+-- Yao en retard de 2 mois (aucun paiement) ; Kone inactif (ignore).
 INSERT INTO cotisation (membre_id, periode, montant, date_paiement, note, version)
 SELECT (SELECT id FROM membre WHERE matricule = v.matricule), v.periode, v.montant, v.date_paiement, v.note, 0
 FROM (VALUES
-  ('ENSI-001', 'Janvier 2026',  5000, CURRENT_DATE - 40, NULL),
-  ('ENSI-001', 'Février 2026',  5000, CURRENT_DATE - 10, NULL),
-  ('ENSI-002', 'Janvier 2026',  5000, CURRENT_DATE - 38, NULL),
-  ('ENSI-003', 'Janvier 2026',  5000, CURRENT_DATE - 35, 'Paiement en espèces'),
-  ('ENSI-003', 'Février 2026',  5000, CURRENT_DATE - 8,  NULL),
-  ('ENSI-005', 'Janvier 2026',  5000, CURRENT_DATE - 30, NULL)
+  ('ENSI-001', to_char(CURRENT_DATE - INTERVAL '2 month', 'YYYY-MM'), 5000, CURRENT_DATE - 40, NULL),
+  ('ENSI-001', to_char(CURRENT_DATE - INTERVAL '1 month', 'YYYY-MM'), 5000, CURRENT_DATE - 10, NULL),
+  ('ENSI-002', to_char(CURRENT_DATE - INTERVAL '2 month', 'YYYY-MM'), 5000, CURRENT_DATE - 38, NULL),
+  ('ENSI-003', to_char(CURRENT_DATE - INTERVAL '2 month', 'YYYY-MM'), 5000, CURRENT_DATE - 35, 'Paiement en espèces'),
+  ('ENSI-003', to_char(CURRENT_DATE - INTERVAL '1 month', 'YYYY-MM'), 5000, CURRENT_DATE - 8,  NULL)
 ) AS v(matricule, periode, montant, date_paiement, note)
 WHERE NOT EXISTS (SELECT 1 FROM cotisation);
