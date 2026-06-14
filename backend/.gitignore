@@ -2,6 +2,7 @@
 build/
 bin/
 .env
+.env.prod
 !gradle/wrapper/gradle-wrapper.jar
 .idea/
 *.iml
