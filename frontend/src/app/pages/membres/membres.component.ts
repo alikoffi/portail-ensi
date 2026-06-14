@@ -1,10 +1,13 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { Chart, registerables } from 'chart.js';
 import { AuthService } from '@/core/services/auth.service';
 import { MembreService } from '@/core/services/membre.service';
-import { Cotisation, Membre, Recouvrement, StatutMembre } from '@/core/models/membre.model';
+import { Cotisation, Membre, Recouvrement, StatistiqueCotisation, StatutMembre } from '@/core/models/membre.model';
+
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-membres',
@@ -12,7 +15,7 @@ import { Cotisation, Membre, Recouvrement, StatutMembre } from '@/core/models/me
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './membres.component.html'
 })
-export class MembresComponent implements OnInit {
+export class MembresComponent implements OnInit, AfterViewInit {
   private readonly fb = inject(FormBuilder);
   private readonly membreService = inject(MembreService);
   private readonly authService = inject(AuthService);
@@ -23,6 +26,13 @@ export class MembresComponent implements OnInit {
   readonly recouvrement = signal<Recouvrement | null>(null);
   readonly chargement = signal(true);
   readonly erreur = signal<string | null>(null);
+
+  // Évolution des cotisations
+  readonly statsCotisations = signal<StatistiqueCotisation | null>(null);
+  readonly anneeSelectionnee = signal<number | null>(null);
+  readonly canvasCotisations = viewChild<ElementRef<HTMLCanvasElement>>('canvasCotisations');
+  private chartCotisations?: Chart;
+  private vueInitialisee = false;
 
   readonly recherche = signal('');
   readonly statutFiltre = signal<'' | StatutMembre>('');
@@ -92,6 +102,12 @@ export class MembresComponent implements OnInit {
 
   ngOnInit(): void {
     this.charger();
+    this.chargerStatistiques();
+  }
+
+  ngAfterViewInit(): void {
+    this.vueInitialisee = true;
+    this.dessinerGraphique();
   }
 
   charger(): void {
@@ -106,6 +122,77 @@ export class MembresComponent implements OnInit {
       error: () => {
         this.erreur.set('Impossible de charger les membres.');
         this.chargement.set(false);
+      }
+    });
+  }
+
+  chargerStatistiques(annee?: number): void {
+    this.membreService.statistiquesCotisations(annee).subscribe({
+      next: (s) => {
+        this.statsCotisations.set(s);
+        this.anneeSelectionnee.set(s.annee);
+        this.dessinerGraphique();
+      },
+      error: () => {}
+    });
+  }
+
+  changerAnnee(annee: number): void {
+    this.chargerStatistiques(annee);
+  }
+
+  private dessinerGraphique(): void {
+    const stats = this.statsCotisations();
+    const el = this.canvasCotisations()?.nativeElement;
+    if (!this.vueInitialisee || !stats || !el) {
+      return;
+    }
+    const ctx = el.getContext('2d');
+    const degrade = ctx ? ctx.createLinearGradient(0, 0, 0, 240) : undefined;
+    if (degrade) {
+      degrade.addColorStop(0, 'rgba(11, 93, 59, 0.35)');
+      degrade.addColorStop(1, 'rgba(11, 93, 59, 0.02)');
+    }
+
+    this.chartCotisations?.destroy();
+    this.chartCotisations = new Chart(el, {
+      type: 'line',
+      data: {
+        labels: stats.moisLabels,
+        datasets: [
+          {
+            label: 'Cotisations (FCFA)',
+            data: stats.montantsParMois,
+            borderColor: '#0b5d3b',
+            backgroundColor: degrade ?? 'rgba(11, 93, 59, 0.15)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2,
+            pointBackgroundColor: '#0b5d3b',
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (c) => `${new Intl.NumberFormat('fr-FR').format(Number(c.parsed.y))} FCFA`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: (v) => new Intl.NumberFormat('fr-FR').format(Number(v)) },
+            grid: { color: 'rgba(0,0,0,0.05)' }
+          },
+          x: { grid: { display: false } }
+        }
       }
     });
   }

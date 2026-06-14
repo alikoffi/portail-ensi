@@ -3,6 +3,7 @@ package ci.inphb.ensi.portail.controller;
 import ci.inphb.ensi.portail.configuration.logger.Logged;
 import ci.inphb.ensi.portail.facade.CotisationFacade;
 import ci.inphb.ensi.portail.presentation.dto.CotisationDto;
+import ci.inphb.ensi.portail.presentation.dto.StatistiqueCotisationDto;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -32,6 +34,12 @@ public class CotisationController {
     @Logged
     public List<CotisationDto> listerParMembre(@PathVariable Long membreId) {
         return cotisationFacade.listerParMembre(membreId);
+    }
+
+    @GetMapping("/statistiques")
+    @Logged
+    public StatistiqueCotisationDto statistiques(@RequestParam(required = false) Integer annee) {
+        return cotisationFacade.statistiques(annee);
     }
 
     @PostMapping("/enregistrer")

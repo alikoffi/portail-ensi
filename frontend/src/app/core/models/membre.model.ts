@@ -37,3 +37,11 @@ export interface Recouvrement {
   nombreMembres: number;
   nombreMembresActifs: number;
 }
+
+export interface StatistiqueCotisation {
+  annee: number;
+  anneesDisponibles: number[];
+  moisLabels: string[];
+  montantsParMois: number[];
+  totalAnnee: number;
+}

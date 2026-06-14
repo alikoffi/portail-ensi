@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-import { Cotisation, Membre, Recouvrement } from '@/core/models/membre.model';
+import { Cotisation, Membre, Recouvrement, StatistiqueCotisation } from '@/core/models/membre.model';
 
 @Injectable({ providedIn: 'root' })
 export class MembreService {
@@ -40,5 +40,10 @@ export class MembreService {
 
   supprimerCotisation(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/cotisation/supprimer/${id}`);
+  }
+
+  statistiquesCotisations(annee?: number): Observable<StatistiqueCotisation> {
+    const url = `${this.base}/cotisation/statistiques${annee ? `?annee=${annee}` : ''}`;
+    return this.http.get<StatistiqueCotisation>(url);
   }
 }

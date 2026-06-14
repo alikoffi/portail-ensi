@@ -4,11 +4,16 @@ import ci.inphb.ensi.portail.domain.Cotisation;
 import ci.inphb.ensi.portail.domain.Membre;
 import ci.inphb.ensi.portail.exception.PortailException;
 import ci.inphb.ensi.portail.presentation.dto.CotisationDto;
+import ci.inphb.ensi.portail.presentation.dto.StatistiqueCotisationDto;
 import ci.inphb.ensi.portail.repository.CotisationRepository;
 import ci.inphb.ensi.portail.repository.MembreRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -56,6 +61,37 @@ public class CotisationFacade {
         Cotisation cotisation = cotisationRepository.findById(id)
                 .orElseThrow(() -> PortailException.nonTrouve("Cotisation introuvable"));
         cotisationRepository.delete(cotisation);
+    }
+
+    private static final String[] MOIS_ABREGES = {
+            "Janv.", "Févr.", "Mars", "Avr.", "Mai", "Juin",
+            "Juil.", "Août", "Sept.", "Oct.", "Nov.", "Déc."
+    };
+
+    @Transactional(readOnly = true)
+    public StatistiqueCotisationDto statistiques(Integer annee) {
+        List<Integer> annees = cotisationRepository.anneesDisponibles();
+        int anneeCible = annee != null ? annee : (annees.isEmpty() ? Year.now().getValue() : annees.get(0));
+
+        BigDecimal[] parMois = new BigDecimal[12];
+        Arrays.fill(parMois, BigDecimal.ZERO);
+        for (Object[] ligne : cotisationRepository.totalParMoisPourAnnee(anneeCible)) {
+            int mois = ((Number) ligne[0]).intValue();
+            parMois[mois - 1] = (BigDecimal) ligne[1];
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (BigDecimal montant : parMois) {
+            total = total.add(montant);
+        }
+
+        StatistiqueCotisationDto dto = new StatistiqueCotisationDto();
+        dto.setAnnee(anneeCible);
+        dto.setAnneesDisponibles(annees);
+        dto.setMoisLabels(List.of(MOIS_ABREGES));
+        dto.setMontantsParMois(new ArrayList<>(Arrays.asList(parMois)));
+        dto.setTotalAnnee(total);
+        return dto;
     }
 
     private void appliquer(Cotisation cotisation, CotisationDto dto) {

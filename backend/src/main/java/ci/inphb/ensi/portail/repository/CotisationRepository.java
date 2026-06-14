@@ -21,4 +21,13 @@ public interface CotisationRepository extends JpaRepository<Cotisation, Long> {
     /** {membreId, total, nombre} agrege par membre. */
     @Query("SELECT c.membre.id, SUM(c.montant), COUNT(c) FROM Cotisation c GROUP BY c.membre.id")
     List<Object[]> agregatParMembre();
+
+    /** Annees distinctes presentes dans les paiements, les plus recentes d'abord. */
+    @Query("SELECT DISTINCT year(c.datePaiement) FROM Cotisation c ORDER BY year(c.datePaiement) DESC")
+    List<Integer> anneesDisponibles();
+
+    /** {mois (1-12), total} pour une annee donnee. */
+    @Query("SELECT month(c.datePaiement), SUM(c.montant) FROM Cotisation c "
+            + "WHERE year(c.datePaiement) = :annee GROUP BY month(c.datePaiement)")
+    List<Object[]> totalParMoisPourAnnee(@Param("annee") int annee);
 }

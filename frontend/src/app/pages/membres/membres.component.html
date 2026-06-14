@@ -28,6 +28,42 @@
     </div>
   </div>
 
+  <!-- Évolution des cotisations -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-chart-line text-ensi-600"></i>
+          <h2 class="font-bold text-gray-800">Évolution des cotisations</h2>
+        </div>
+        @if (statsCotisations()) {
+          <p class="mt-1 text-sm text-gray-500">
+            Total {{ statsCotisations()?.annee }} :
+            <span class="font-semibold text-ensi-700">{{ formater(statsCotisations()?.totalAnnee) }}</span>
+          </p>
+        }
+      </div>
+
+      <!-- Filtre année (pills) -->
+      @if ((statsCotisations()?.anneesDisponibles?.length ?? 0) > 0) {
+        <div class="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+          @for (a of statsCotisations()?.anneesDisponibles; track a) {
+            <button (click)="changerAnnee(a)"
+              class="px-3 py-1.5 rounded-md text-xs font-semibold transition-colors"
+              [class.bg-white]="anneeSelectionnee() === a"
+              [class.text-ensi-700]="anneeSelectionnee() === a"
+              [class.shadow-sm]="anneeSelectionnee() === a"
+              [class.text-gray-500]="anneeSelectionnee() !== a">{{ a }}</button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="h-60">
+      <canvas #canvasCotisations></canvas>
+    </div>
+  </div>
+
   <!-- Filtres -->
   <div class="flex items-center gap-3 flex-wrap">
     <div class="relative flex-1 min-w-[220px]">
