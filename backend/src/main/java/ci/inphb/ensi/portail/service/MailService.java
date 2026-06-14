@@ -1,6 +1,7 @@
 package ci.inphb.ensi.portail.service;
 
 import ci.inphb.ensi.portail.domain.Utilisateur;
+import ci.inphb.ensi.portail.presentation.dto.EvenementDto;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,6 +57,22 @@ public class MailService {
         variables.put("role", utilisateur.getRole().name());
         variables.put("lien", urlApplication);
         envoyer(utilisateur.getEmail(), "Votre accès au Portail ENSI", "mail/bienvenue", variables);
+    }
+
+    /**
+     * Email de rappel : evenements a venir et membres en retard de cotisation.
+     */
+    @Async
+    public void envoyerRappel(Utilisateur destinataire, List<EvenementDto> evenements, List<String> membresEnRetard) {
+        if (!StringUtils.hasText(destinataire.getEmail())) {
+            return;
+        }
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("label", StringUtils.hasText(destinataire.getLabel()) ? destinataire.getLabel() : destinataire.getUsername());
+        variables.put("evenements", evenements);
+        variables.put("membresEnRetard", membresEnRetard);
+        variables.put("lien", urlApplication);
+        envoyer(destinataire.getEmail(), "Rappel — Portail ENSI", "mail/rappel", variables);
     }
 
     private void envoyer(String destinataire, String objet, String template, Map<String, Object> variables) {

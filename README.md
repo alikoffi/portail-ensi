@@ -36,6 +36,7 @@ security · configuration · exception · enums · utils
 | **Lot 5** | Graphiques (Chart.js) + export PDF | ✅ fait |
 | **Lot 6** | Membres + cotisations (recouvrement) | ✅ fait |
 | **Lot 7** | Rôles étendus (Trésorier/Secrétaire) + comptes | ✅ fait |
+| **Lot 8** | Notifications email (bienvenue + rappels planifiés) | ✅ fait |
 
 ## Démarrage local
 

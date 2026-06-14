@@ -10,4 +10,7 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     Optional<Utilisateur> findByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    /** Comptes actifs disposant d'une adresse email (destinataires des rappels). */
+    java.util.List<Utilisateur> findByActifTrueAndEmailIsNotNull();
 }

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { AuthService } from '@/core/services/auth.service';
 import { TableauBordService } from '@/core/services/tableau-bord.service';
+import { RappelService } from '@/core/services/rappel.service';
+import { NotificationService } from '@/core/services/notification.service';
 import { Statistique, TableauBord } from '@/core/models/tableau-bord.model';
 
 Chart.register(...registerables);
@@ -28,8 +30,12 @@ const COULEURS_CATEGORIES = [
 export class DashboardComponent implements OnInit, AfterViewInit {
   private readonly authService = inject(AuthService);
   private readonly tableauBordService = inject(TableauBordService);
+  private readonly rappelService = inject(RappelService);
+  private readonly notification = inject(NotificationService);
 
   readonly utilisateur = this.authService.user;
+  readonly estAdmin = this.authService.estAdmin;
+  readonly envoiRappels = signal(false);
   readonly chargement = signal(true);
   readonly erreur = signal<string | null>(null);
   readonly donnees = signal<TableauBord | null>(null);
@@ -80,6 +86,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.dessinerGraphiques();
       },
       error: () => {}
+    });
+  }
+
+  envoyerRappels(): void {
+    this.envoiRappels.set(true);
+    this.rappelService.envoyer().subscribe({
+      next: (r) => {
+        this.envoiRappels.set(false);
+        if (r.nombreDestinataires === 0) {
+          this.notification.info('Aucun destinataire avec email à notifier.');
+        } else if (r.nombreEvenements === 0 && r.nombreMembresEnRetard === 0) {
+          this.notification.info('Rien à signaler : aucun rappel envoyé.');
+        } else {
+          this.notification.succes(
+            `Rappels envoyés à ${r.nombreDestinataires} destinataire(s) — ${r.nombreEvenements} évènement(s), ${r.nombreMembresEnRetard} cotisation(s) en retard.`
+          );
+        }
+      },
+      error: () => {
+        this.envoiRappels.set(false);
+        this.notification.erreur("L'envoi des rappels a échoué.");
+      }
     });
   }
 

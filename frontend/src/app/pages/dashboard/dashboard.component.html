@@ -5,13 +5,26 @@
       <h1 class="text-2xl font-bold text-gray-800">Bonjour, {{ utilisateur()?.label }} 👋</h1>
       <p class="mt-1 text-sm text-gray-500">Vue d'ensemble de la promotion ENSI.</p>
     </div>
-    <button
-      (click)="charger()"
-      class="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-    >
-      <i class="pi" [class.pi-refresh]="!chargement()" [class.pi-spin]="chargement()" [class.pi-spinner]="chargement()"></i>
-      Actualiser
-    </button>
+    <div class="flex items-center gap-2">
+      @if (estAdmin()) {
+        <button
+          (click)="envoyerRappels()"
+          [disabled]="envoiRappels()"
+          class="flex items-center gap-2 px-3 py-2 rounded-lg bg-ensi-600 text-white text-sm font-medium hover:bg-ensi-700 disabled:opacity-60 transition-colors"
+          title="Envoyer par email les rappels d'évènements et de cotisations au bureau"
+        >
+          @if (envoiRappels()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-send"></i> }
+          Envoyer les rappels
+        </button>
+      }
+      <button
+        (click)="charger()"
+        class="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+      >
+        <i class="pi" [class.pi-refresh]="!chargement()" [class.pi-spin]="chargement()" [class.pi-spinner]="chargement()"></i>
+        Actualiser
+      </button>
+    </div>
   </div>
 
   @if (erreur()) {

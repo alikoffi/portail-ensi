@@ -16,6 +16,9 @@ public interface EvenementRepository extends JpaRepository<Evenement, Long> {
     /** Evenements a venir, du plus proche au plus lointain. */
     List<Evenement> findByDateEventGreaterThanEqualOrderByDateEventAsc(LocalDate date);
 
+    /** Evenements dans un intervalle (rappels). */
+    List<Evenement> findByDateEventBetweenOrderByDateEventAsc(LocalDate debut, LocalDate fin);
+
     /** Nombre d'evenements dans l'intervalle (mois courant). */
     @Query("SELECT COUNT(e) FROM Evenement e WHERE e.dateEvent BETWEEN :debut AND :fin")
     long compterEntre(@Param("debut") LocalDate debut, @Param("fin") LocalDate fin);
