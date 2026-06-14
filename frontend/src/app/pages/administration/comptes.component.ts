@@ -29,6 +29,8 @@ export class ComptesComponent implements OnInit {
   readonly erreur = signal<string | null>(null);
 
   readonly modalOuvert = signal(false);
+  readonly enEdition = signal(false);
+  readonly editionId = signal<number | null>(null);
   readonly enregistrement = signal(false);
   readonly erreurFormulaire = signal<string | null>(null);
   readonly afficherMotDePasse = signal(false);
@@ -39,7 +41,8 @@ export class ComptesComponent implements OnInit {
     username: ['', Validators.required],
     password: ['', [Validators.required, Validators.minLength(6)]],
     role: ['VIEWER' as RoleUtilisateur, Validators.required],
-    label: ['']
+    label: [''],
+    email: ['', Validators.email]
   });
 
   ngOnInit(): void {
@@ -79,9 +82,27 @@ export class ComptesComponent implements OnInit {
   }
 
   ouvrirCreation(): void {
+    this.enEdition.set(false);
+    this.editionId.set(null);
     this.erreurFormulaire.set(null);
     this.afficherMotDePasse.set(false);
-    this.form.reset({ username: '', password: '', role: 'VIEWER', label: '' });
+    this.form.reset({ username: '', password: '', role: 'VIEWER', label: '', email: '' });
+    this.form.controls.username.enable();
+    this.form.controls.password.enable();
+    this.form.controls.password.setValidators([Validators.required, Validators.minLength(6)]);
+    this.form.controls.password.updateValueAndValidity();
+    this.modalOuvert.set(true);
+  }
+
+  ouvrirEdition(u: Utilisateur): void {
+    this.enEdition.set(true);
+    this.editionId.set(u.id);
+    this.erreurFormulaire.set(null);
+    this.form.reset({ username: u.username, password: '', role: u.role, label: u.label ?? '', email: u.email ?? '' });
+    this.form.controls.username.disable();
+    this.form.controls.password.clearValidators();
+    this.form.controls.password.disable();
+    this.form.controls.password.updateValueAndValidity();
     this.modalOuvert.set(true);
   }
 
@@ -101,11 +122,17 @@ export class ComptesComponent implements OnInit {
     this.enregistrement.set(true);
     this.erreurFormulaire.set(null);
     const v = this.form.getRawValue();
-    this.utilisateurService.enregistrer({ username: v.username, password: v.password, role: v.role, label: v.label || undefined }).subscribe({
+
+    const requete = this.enEdition()
+      ? this.utilisateurService.modifier({ id: this.editionId()!, role: v.role, label: v.label || undefined, email: v.email || undefined })
+      : this.utilisateurService.enregistrer({ username: v.username, password: v.password, role: v.role, label: v.label || undefined, email: v.email || undefined });
+
+    const edition = this.enEdition();
+    requete.subscribe({
       next: () => {
         this.enregistrement.set(false);
         this.modalOuvert.set(false);
-        this.notification.succes('Compte créé.');
+        this.notification.succes(edition ? 'Compte modifié.' : 'Compte créé.');
         this.charger();
       },
       error: (err) => {

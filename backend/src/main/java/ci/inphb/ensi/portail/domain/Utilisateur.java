@@ -43,6 +43,9 @@ public class Utilisateur extends AbstractEntity {
     @Column(name = "label")
     private String label;
 
+    @Column(name = "email")
+    private String email;
+
     @Column(name = "actif", nullable = false)
     private boolean actif = true;
 
@@ -92,6 +95,14 @@ public class Utilisateur extends AbstractEntity {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public boolean isActif() {

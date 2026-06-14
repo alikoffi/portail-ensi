@@ -1,20 +1,17 @@
 package ci.inphb.ensi.portail.presentation.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
-public class CreationUtilisateurDto {
+/**
+ * Modification d'un compte par un administrateur (role, libelle, email).
+ */
+public class ModificationUtilisateurDto {
 
-    @NotBlank(message = "Le nom d'utilisateur est obligatoire")
-    private String username;
+    @NotNull(message = "L'identifiant est obligatoire")
+    private Long id;
 
-    @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 6, message = "Le mot de passe doit comporter au moins 6 caractères")
-    private String password;
-
-    @NotBlank(message = "Le rôle est obligatoire")
     @Pattern(regexp = "ADMIN|TRESORIER|SECRETAIRE|VIEWER", message = "Rôle invalide")
     private String role;
 
@@ -23,20 +20,12 @@ public class CreationUtilisateurDto {
     @Email(message = "Adresse email invalide")
     private String email;
 
-    public String getUsername() {
-        return username;
+    public Long getId() {
+        return id;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getRole() {

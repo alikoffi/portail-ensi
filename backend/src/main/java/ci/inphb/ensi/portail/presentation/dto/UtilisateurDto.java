@@ -8,6 +8,7 @@ public class UtilisateurDto {
     private String username;
     private String role;
     private String label;
+    private String email;
     private boolean actif;
 
     public UtilisateurDto() {
@@ -18,6 +19,7 @@ public class UtilisateurDto {
         this.username = utilisateur.getUsername();
         this.role = utilisateur.getRole().name();
         this.label = utilisateur.getLabel();
+        this.email = utilisateur.getEmail();
         this.actif = utilisateur.isActif();
     }
 
@@ -51,6 +53,14 @@ public class UtilisateurDto {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public boolean isActif() {

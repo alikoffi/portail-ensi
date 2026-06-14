@@ -42,6 +42,16 @@ export class AuthService {
     );
   }
 
+  /** Met à jour le libellé affiché localement (après modification du profil). */
+  majLabelLocal(label: string): void {
+    const courant = this._user();
+    if (courant) {
+      const maj = { ...courant, label };
+      localStorage.setItem(USER_KEY, JSON.stringify(maj));
+      this._user.set(maj);
+    }
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

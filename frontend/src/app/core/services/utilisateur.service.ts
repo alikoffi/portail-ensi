@@ -9,6 +9,24 @@ export interface CreationUtilisateur {
   password: string;
   role: RoleUtilisateur;
   label?: string;
+  email?: string;
+}
+
+export interface ModificationUtilisateur {
+  id: number;
+  role: RoleUtilisateur;
+  label?: string;
+  email?: string;
+}
+
+export interface ProfilMaj {
+  label?: string;
+  email?: string;
+}
+
+export interface ChangementMotDePasse {
+  ancienMotDePasse: string;
+  nouveauMotDePasse: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -24,7 +42,24 @@ export class UtilisateurService {
     return this.http.post<Utilisateur>(`${this.base}/enregistrer`, payload);
   }
 
+  modifier(payload: ModificationUtilisateur): Observable<Utilisateur> {
+    return this.http.put<Utilisateur>(`${this.base}/modifier`, payload);
+  }
+
   basculerActif(id: number): Observable<Utilisateur> {
     return this.http.put<Utilisateur>(`${this.base}/basculer-actif/${id}`, {});
+  }
+
+  // ----- Profil de l'utilisateur connecté -----
+  moi(): Observable<Utilisateur> {
+    return this.http.get<Utilisateur>(`${this.base}/moi`);
+  }
+
+  modifierProfil(payload: ProfilMaj): Observable<Utilisateur> {
+    return this.http.put<Utilisateur>(`${this.base}/profil`, payload);
+  }
+
+  changerMotDePasse(payload: ChangementMotDePasse): Observable<void> {
+    return this.http.put<void>(`${this.base}/mot-de-passe`, payload);
   }
 }

@@ -17,5 +17,6 @@ export interface Utilisateur {
   username: string;
   role: RoleUtilisateur;
   label: string;
+  email?: string | null;
   actif: boolean;
 }

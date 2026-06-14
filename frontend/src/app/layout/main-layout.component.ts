@@ -23,6 +23,7 @@ export class MainLayoutComponent {
   readonly utilisateur = this.authService.user;
   readonly estAdmin = this.authService.estAdmin;
   readonly sidebarOuverte = signal(true);
+  readonly menuProfilOuvert = signal(false);
   readonly annee = new Date().getFullYear();
 
   readonly menu: ElementMenu[] = [
@@ -72,7 +73,16 @@ export class MainLayoutComponent {
     this.sidebarOuverte.update((v) => !v);
   }
 
+  basculerMenuProfil(): void {
+    this.menuProfilOuvert.update((v) => !v);
+  }
+
+  fermerMenuProfil(): void {
+    this.menuProfilOuvert.set(false);
+  }
+
   deconnexion(): void {
+    this.menuProfilOuvert.set(false);
     this.authService.logout();
   }
 }

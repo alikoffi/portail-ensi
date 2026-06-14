@@ -42,14 +42,14 @@
       <ng-template pTemplate="header">
         <tr>
           <th pSortableColumn="username">Utilisateur <p-sortIcon field="username" /></th>
-          <th pSortableColumn="label">Libellé <p-sortIcon field="label" /></th>
+          <th pSortableColumn="email">Email <p-sortIcon field="email" /></th>
           <th pSortableColumn="role">Rôle <p-sortIcon field="role" /></th>
           <th pSortableColumn="actif">Statut <p-sortIcon field="actif" /></th>
-          <th class="text-right">Action</th>
+          <th class="text-right">Actions</th>
         </tr>
         <tr>
           <th><p-columnFilter type="text" field="username" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
-          <th></th>
+          <th><p-columnFilter type="text" field="email" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
           <th>
             <p-columnFilter field="role" matchMode="equals" display="row" [showMenu]="false" [showClearButton]="false">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
@@ -70,10 +70,13 @@
           <td>
             <div class="flex items-center gap-3">
               <span class="flex items-center justify-center w-9 h-9 rounded-full bg-ensi-600 text-white text-xs font-bold shrink-0">{{ u.username.charAt(0).toUpperCase() }}</span>
-              <span class="font-medium text-gray-800">{{ u.username }}</span>
+              <div>
+                <div class="font-medium text-gray-800">{{ u.username }}</div>
+                @if (u.label) { <div class="text-xs text-gray-400">{{ u.label }}</div> }
+              </div>
             </div>
           </td>
-          <td class="text-gray-600">{{ u.label || '—' }}</td>
+          <td class="text-gray-600 break-all">{{ u.email || '—' }}</td>
           <td><span class="px-2.5 py-1 rounded-full text-[11px] font-semibold {{ couleurRole(u.role) }}">{{ libelleRole(u.role) }}</span></td>
           <td>
             <span class="inline-flex items-center gap-1.5 text-xs font-medium" [class.text-emerald-600]="u.actif" [class.text-gray-400]="!u.actif">
@@ -81,13 +84,15 @@
               {{ u.actif ? 'Actif' : 'Inactif' }}
             </span>
           </td>
-          <td class="text-right">
-            <button (click)="basculerActif(u)"
-              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-              [class.text-red-600]="u.actif" [class.hover:bg-red-50]="u.actif"
-              [class.text-emerald-600]="!u.actif" [class.hover:bg-emerald-50]="!u.actif">
-              {{ u.actif ? 'Désactiver' : 'Activer' }}
-            </button>
+          <td>
+            <div class="flex items-center gap-1 justify-end">
+              <button (click)="ouvrirEdition(u)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-ensi-50 hover:text-ensi-700" title="Modifier"><i class="pi pi-pencil text-sm"></i></button>
+              <button (click)="basculerActif(u)" class="flex items-center justify-center w-8 h-8 rounded-lg"
+                [class.text-gray-400]="true" [class.hover:bg-red-50]="u.actif" [class.hover:text-red-600]="u.actif" [class.hover:bg-emerald-50]="!u.actif" [class.hover:text-emerald-600]="!u.actif"
+                [title]="u.actif ? 'Désactiver' : 'Activer'">
+                <i class="pi text-sm" [class.pi-ban]="u.actif" [class.pi-check-circle]="!u.actif"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </ng-template>
@@ -104,7 +109,7 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="fermerModal()">
     <div class="w-full max-w-md bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 class="font-bold text-gray-800">Nouveau compte</h2>
+        <h2 class="font-bold text-gray-800">{{ enEdition() ? 'Modifier le compte' : 'Nouveau compte' }}</h2>
         <button (click)="fermerModal()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
       </div>
       <form [formGroup]="form" (ngSubmit)="enregistrer()" class="p-6 space-y-4">
@@ -113,19 +118,26 @@
         }
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur *</label>
-          <input type="text" formControlName="username" autocomplete="off" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          <input type="text" formControlName="username" autocomplete="off" [class.bg-gray-50]="enEdition()" [class.text-gray-500]="enEdition()" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
           @if (form.controls.username.touched && form.controls.username.invalid) { <p class="mt-1 text-xs text-red-600">Obligatoire.</p> }
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe *</label>
-          <div class="relative">
-            <input [type]="afficherMotDePasse() ? 'text' : 'password'" formControlName="password" autocomplete="new-password"
-              class="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
-            <button type="button" (click)="basculerMotDePasse()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" tabindex="-1">
-              <i class="pi" [class.pi-eye]="!afficherMotDePasse()" [class.pi-eye-slash]="afficherMotDePasse()"></i>
-            </button>
+        @if (!enEdition()) {
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe *</label>
+            <div class="relative">
+              <input [type]="afficherMotDePasse() ? 'text' : 'password'" formControlName="password" autocomplete="new-password"
+                class="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+              <button type="button" (click)="basculerMotDePasse()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" tabindex="-1">
+                <i class="pi" [class.pi-eye]="!afficherMotDePasse()" [class.pi-eye-slash]="afficherMotDePasse()"></i>
+              </button>
+            </div>
+            @if (form.controls.password.touched && form.controls.password.invalid) { <p class="mt-1 text-xs text-red-600">6 caractères minimum.</p> }
           </div>
-          @if (form.controls.password.touched && form.controls.password.invalid) { <p class="mt-1 text-xs text-red-600">6 caractères minimum.</p> }
+        }
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" formControlName="email" autocomplete="off" placeholder="nom@ensi.ci" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (form.controls.email.touched && form.controls.email.invalid) { <p class="mt-1 text-xs text-red-600">Email invalide.</p> }
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -142,7 +154,7 @@
         <div class="flex items-center justify-end gap-3 pt-2">
           <button type="button" (click)="fermerModal()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
           <button type="submit" [disabled]="enregistrement()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
-            @if (enregistrement()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } Créer le compte
+            @if (enregistrement()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } {{ enEdition() ? 'Enregistrer' : 'Créer le compte' }}
           </button>
         </div>
       </form>

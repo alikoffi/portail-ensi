@@ -46,6 +46,10 @@ export const routes: Routes = [
         path: 'administration/parametrage/:categorie',
         canActivate: [adminGuard],
         loadComponent: () => import('@/pages/administration/parametrage.component').then((m) => m.ParametrageComponent)
+      },
+      {
+        path: 'profil',
+        loadComponent: () => import('@/pages/profil/profil.component').then((m) => m.ProfilComponent)
       }
     ]
   },
