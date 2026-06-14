@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@/core/services/auth.service';
 import { EvenementService } from '@/core/services/evenement.service';
 import { NotificationService } from '@/core/services/notification.service';
+import { ParametrageService } from '@/core/services/parametrage.service';
 import { Evenement } from '@/core/models/evenement.model';
 
 @Component({
@@ -17,8 +18,10 @@ export class PlanningComponent implements OnInit {
   private readonly evenementService = inject(EvenementService);
   private readonly authService = inject(AuthService);
   private readonly notification = inject(NotificationService);
+  private readonly parametrageService = inject(ParametrageService);
 
   readonly peutGerer = this.authService.peutGererPlanning;
+  readonly typesEvenement = signal<string[]>([]);
 
   readonly evenements = signal<Evenement[]>([]);
   readonly chargement = signal(true);
@@ -74,6 +77,9 @@ export class PlanningComponent implements OnInit {
 
   ngOnInit(): void {
     this.charger();
+    this.parametrageService.listerActifs('TYPE_EVENEMENT').subscribe({
+      next: (vs) => this.typesEvenement.set(vs.map((v) => v.libelle))
+    });
   }
 
   charger(): void {

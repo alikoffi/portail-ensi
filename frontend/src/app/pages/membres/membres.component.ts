@@ -8,6 +8,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { AuthService } from '@/core/services/auth.service';
 import { MembreService } from '@/core/services/membre.service';
 import { NotificationService } from '@/core/services/notification.service';
+import { ParametrageService } from '@/core/services/parametrage.service';
 import { LigneMembre, Membre, Recouvrement, StatistiqueCotisation, StatutMembre } from '@/core/models/membre.model';
 import { Cotisation } from '@/core/models/membre.model';
 
@@ -24,9 +25,11 @@ export class MembresComponent implements OnInit, AfterViewInit {
   private readonly membreService = inject(MembreService);
   private readonly authService = inject(AuthService);
   private readonly notification = inject(NotificationService);
+  private readonly parametrageService = inject(ParametrageService);
 
   readonly peutGererMembres = this.authService.peutGererMembres;
   readonly peutGererCotisations = this.authService.peutGererFinances;
+  readonly specialites = signal<string[]>([]);
 
   readonly membres = signal<Membre[]>([]);
   readonly recouvrement = signal<Recouvrement | null>(null);
@@ -118,6 +121,9 @@ export class MembresComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.charger();
     this.chargerStatistiques();
+    this.parametrageService.listerActifs('SPECIALITE').subscribe({
+      next: (vs) => this.specialites.set(vs.map((v) => v.libelle))
+    });
   }
 
   ngAfterViewInit(): void {

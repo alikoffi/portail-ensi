@@ -6,8 +6,9 @@ import { AuthService } from '@/core/services/auth.service';
 interface ElementMenu {
   libelle: string;
   icone: string;
-  route: string;
+  route?: string;
   adminSeulement?: boolean;
+  enfants?: ElementMenu[];
 }
 
 @Component({
@@ -30,8 +31,32 @@ export class MainLayoutComponent {
     { libelle: 'États financiers', icone: 'pi-wallet', route: '/finances' },
     { libelle: 'Membres', icone: 'pi-users', route: '/membres' },
     { libelle: 'Procès-verbaux', icone: 'pi-file', route: '/proces-verbaux' },
-    { libelle: 'Comptes', icone: 'pi-shield', route: '/administration/comptes', adminSeulement: true }
+    { libelle: 'Comptes', icone: 'pi-shield', route: '/administration/comptes', adminSeulement: true },
+    {
+      libelle: 'Paramétrage',
+      icone: 'pi-cog',
+      adminSeulement: true,
+      enfants: [
+        { libelle: "Types d'évènement", icone: 'pi-calendar', route: '/administration/parametrage/TYPE_EVENEMENT' },
+        { libelle: 'Catégories de transaction', icone: 'pi-wallet', route: '/administration/parametrage/CATEGORIE_TRANSACTION' },
+        { libelle: 'Spécialités', icone: 'pi-bookmark', route: '/administration/parametrage/SPECIALITE' }
+      ]
+    }
   ];
+
+  readonly groupesOuverts = signal<Set<string>>(new Set());
+
+  estGroupeOuvert(libelle: string): boolean {
+    return this.groupesOuverts().has(libelle);
+  }
+
+  basculerGroupe(libelle: string): void {
+    this.groupesOuverts.update((set) => {
+      const copie = new Set(set);
+      copie.has(libelle) ? copie.delete(libelle) : copie.add(libelle);
+      return copie;
+    });
+  }
 
   readonly initiales = computed(() => {
     const label = this.utilisateur()?.label ?? this.utilisateur()?.username ?? '?';

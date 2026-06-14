@@ -6,6 +6,7 @@ import { AuthService } from '@/core/services/auth.service';
 import { TransactionService } from '@/core/services/transaction.service';
 import { ExportService } from '@/core/services/export.service';
 import { NotificationService } from '@/core/services/notification.service';
+import { ParametrageService } from '@/core/services/parametrage.service';
 import { Transaction, TypeTransaction } from '@/core/models/transaction.model';
 
 @Component({
@@ -20,9 +21,11 @@ export class TransactionsTabComponent implements OnInit {
   private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
   private readonly notification = inject(NotificationService);
+  private readonly parametrageService = inject(ParametrageService);
 
   readonly peutGerer = this.authService.peutGererFinances;
   readonly exportEnCours = signal(false);
+  readonly categories = signal<string[]>([]);
 
   readonly transactions = signal<Transaction[]>([]);
   readonly chargement = signal(true);
@@ -56,6 +59,9 @@ export class TransactionsTabComponent implements OnInit {
 
   ngOnInit(): void {
     this.charger();
+    this.parametrageService.listerActifs('CATEGORIE_TRANSACTION').subscribe({
+      next: (vs) => this.categories.set(vs.map((v) => v.libelle))
+    });
   }
 
   charger(): void {
