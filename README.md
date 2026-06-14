@@ -34,6 +34,7 @@ security · configuration · exception · enums · utils
 | **Lot 3** | États financiers (transactions + bilan) | ✅ fait |
 | **Lot 4** | Procès-verbaux (CRUD) | ✅ fait |
 | **Lot 5** | Graphiques (Chart.js) + export PDF | ✅ fait |
+| **Lot 6** | Membres + cotisations (recouvrement) | ✅ fait |
 
 ## Démarrage local
 
