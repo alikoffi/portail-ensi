@@ -8,7 +8,7 @@
 -- admin / admin123  |  visiteur1 & visiteur2 / visiteur123  (hash bcrypt)
 INSERT INTO utilisateur (username, password_hash, role, label, email, actif, version)
 VALUES
-  ('admin',      '$2a$10$fHCvMQtT9OYDDSkxsoUu1.7QN4LZn/ifl8UKd8W9TP8YOqLgs66Iy', 'ADMIN',      'Administrateur', 'admin@ensi.ci',      TRUE, 0),
+  ('admin',      '$2a$10$mbCKed8QgQzs54sjANjgUezPLxIsbWqyFck2K5j5LSi5tTC5wjJ8e', 'ADMIN',      'Administrateur', 'ably84@gmail.com',   TRUE, 0),
   ('tresorier',  '$2a$10$ulaT6jIpSXRmq176MBC43uZT68KOcfeu31OtKfbM4pvDA3fNVs6fq', 'TRESORIER',  'Trésorier',      'tresorier@ensi.ci',  TRUE, 0),
   ('secretaire', '$2a$10$y0ECP4tRSvIUEkw9hsLDH.2Gw/N9TbQi53SfIomFJ6MxXIHS0hqgG', 'SECRETAIRE', 'Secrétaire',     'secretaire@ensi.ci', TRUE, 0),
   ('visiteur1',  '$2a$10$2wYEpa20wCV7cdIjBdMNn.PZtH7ZSNkt/2sJUDv.JOeOAHctaEZU6', 'VIEWER',     'Visiteur 1',     NULL,                 TRUE, 0),
