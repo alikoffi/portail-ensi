@@ -103,10 +103,10 @@
           <th pSortableColumn="totalCotise" class="text-right">Total cotisé <p-sortIcon field="totalCotise" /></th>
         </tr>
         <tr>
-          <th><p-columnFilter type="text" field="nomComplet" matchMode="contains" [showMenu]="false" /></th>
-          <th><p-columnFilter type="text" field="specialite" matchMode="contains" [showMenu]="false" /></th>
+          <th><p-columnFilter type="text" field="nomComplet" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
+          <th><p-columnFilter type="text" field="specialite" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
           <th>
-            <p-columnFilter field="statut" matchMode="equals" [showMenu]="false">
+            <p-columnFilter field="statut" matchMode="equals" display="row" [showMenu]="false" [showClearButton]="false">
               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                 <select (change)="filter($any($event.target).value)"
                   class="w-full px-2 py-1.5 rounded-md border border-gray-300 text-xs bg-white outline-none">

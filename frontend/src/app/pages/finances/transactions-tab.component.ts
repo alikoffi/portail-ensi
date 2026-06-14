@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TableModule } from 'primeng/table';
 import { AuthService } from '@/core/services/auth.service';
 import { TransactionService } from '@/core/services/transaction.service';
 import { ExportService } from '@/core/services/export.service';
@@ -9,7 +10,7 @@ import { Transaction, TypeTransaction } from '@/core/models/transaction.model';
 @Component({
   selector: 'app-transactions-tab',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TableModule],
   templateUrl: './transactions-tab.component.html'
 })
 export class TransactionsTabComponent implements OnInit {
@@ -24,9 +25,6 @@ export class TransactionsTabComponent implements OnInit {
   readonly transactions = signal<Transaction[]>([]);
   readonly chargement = signal(true);
   readonly erreur = signal<string | null>(null);
-
-  readonly recherche = signal('');
-  readonly typeFiltre = signal<'' | TypeTransaction>('');
 
   readonly modalOuvert = signal(false);
   readonly enEdition = signal(false);
@@ -44,19 +42,6 @@ export class TransactionsTabComponent implements OnInit {
     dateTx: ['', Validators.required],
     categorie: [''],
     note: ['']
-  });
-
-  readonly filtrees = computed(() => {
-    const q = this.recherche().trim().toLowerCase();
-    const type = this.typeFiltre();
-    return this.transactions().filter((t) => {
-      const okType = !type || t.type === type;
-      const okTexte =
-        !q ||
-        t.libelle.toLowerCase().includes(q) ||
-        (t.categorie ?? '').toLowerCase().includes(q);
-      return okType && okTexte;
-    });
   });
 
   readonly totalRecettes = computed(() =>
