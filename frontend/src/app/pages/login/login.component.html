@@ -1,0 +1,119 @@
+<div class="min-h-screen grid lg:grid-cols-2">
+  <!-- Colonne gauche : panneau institutionnel -->
+  <div class="relative hidden lg:flex flex-col justify-between p-12 bg-ensi-700 text-white overflow-hidden">
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5"></div>
+    <div class="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-white/5"></div>
+
+    <div class="relative flex items-center gap-3">
+      <div class="flex items-center justify-center w-11 h-11 rounded-xl bg-white/15 text-xl font-extrabold">E</div>
+      <div>
+        <div class="font-bold text-lg leading-tight">Portail ENSI</div>
+        <div class="text-xs text-white/60">INPHB — Yamoussoukro</div>
+      </div>
+    </div>
+
+    <div class="relative max-w-md">
+      <h1 class="text-4xl font-extrabold leading-tight">
+        La plateforme de votre promotion.
+      </h1>
+      <p class="mt-4 text-white/70 leading-relaxed">
+        Évènements, finances, procès-verbaux : un espace numérique unique au service de la
+        transparence et de la vie associative de la promotion ENSI.
+      </p>
+      <div class="mt-8 flex items-center gap-6 text-white/80 text-sm">
+        <span class="flex items-center gap-2"><i class="pi pi-calendar"></i> Planning</span>
+        <span class="flex items-center gap-2"><i class="pi pi-wallet"></i> Finances</span>
+        <span class="flex items-center gap-2"><i class="pi pi-file"></i> PV</span>
+      </div>
+    </div>
+
+    <div class="relative text-xs text-white/40">Rigueur • Solidarité • Excellence</div>
+  </div>
+
+  <!-- Colonne droite : formulaire -->
+  <div class="flex items-center justify-center p-6 sm:p-12 bg-[#f6f8f7]">
+    <div class="w-full max-w-md">
+      <!-- En-tête mobile -->
+      <div class="lg:hidden flex items-center gap-3 mb-8">
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-ensi-600 text-white font-extrabold">E</div>
+        <div class="font-bold text-ensi-700">Portail ENSI</div>
+      </div>
+
+      <h2 class="text-2xl font-bold text-gray-800">Connexion</h2>
+      <p class="mt-1 text-sm text-gray-500">Accédez à votre espace associatif.</p>
+
+      @if (erreur()) {
+        <div class="mt-6 flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm">
+          <i class="pi pi-exclamation-circle"></i>
+          <span>{{ erreur() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" class="mt-6 space-y-5">
+        <!-- Username -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Nom d'utilisateur</label>
+          <div class="relative">
+            <i class="pi pi-user absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input
+              type="text"
+              formControlName="username"
+              autocomplete="username"
+              placeholder="admin"
+              class="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-300 bg-white text-sm
+                     focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none transition"
+            />
+          </div>
+          @if (form.controls.username.touched && form.controls.username.invalid) {
+            <p class="mt-1 text-xs text-red-600">Champ obligatoire.</p>
+          }
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Mot de passe</label>
+          <div class="relative">
+            <i class="pi pi-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input
+              [type]="afficherMotDePasse() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              class="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 bg-white text-sm
+                     focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none transition"
+            />
+            <button
+              type="button"
+              (click)="basculerMotDePasse()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabindex="-1"
+            >
+              <i class="pi" [class.pi-eye]="!afficherMotDePasse()" [class.pi-eye-slash]="afficherMotDePasse()"></i>
+            </button>
+          </div>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <p class="mt-1 text-xs text-red-600">Champ obligatoire.</p>
+          }
+        </div>
+
+        <!-- Bouton -->
+        <button
+          type="submit"
+          [disabled]="chargement()"
+          class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold
+                 hover:bg-ensi-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        >
+          @if (chargement()) {
+            <i class="pi pi-spin pi-spinner"></i> Connexion…
+          } @else {
+            <i class="pi pi-sign-in"></i> Se connecter
+          }
+        </button>
+      </form>
+
+      <p class="mt-8 text-center text-xs text-gray-400">
+        © {{ annee }} Portail ENSI — INPHB Yamoussoukro
+      </p>
+    </div>
+  </div>
+</div>

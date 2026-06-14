@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        @page { size: A4; margin: 1.8cm 1.8cm; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Helvetica', sans-serif; color: #1f2937; font-size: 11px; line-height: 1.5; }
+        .entete { border-bottom: 3px solid #0b5d3b; padding-bottom: 10px; margin-bottom: 18px; }
+        .entete .titre { color: #0b5d3b; font-size: 20px; font-weight: bold; }
+        .entete .sous { color: #6b7280; font-size: 11px; }
+        .doc { text-align: center; margin: 6px 0 2px; font-size: 16px; font-weight: bold; color: #0b5d3b; }
+        .objet { text-align: center; font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+        .meta { text-align: center; color: #6b7280; font-size: 10px; margin-bottom: 18px; }
+        .section { margin-bottom: 16px; }
+        .section h4 { color: #0b5d3b; font-size: 12px; border-bottom: 1px solid #d6e4dc; padding-bottom: 3px; margin-bottom: 6px; }
+        .section .corps { white-space: pre-line; }
+        .signatures { margin-top: 30px; padding-top: 10px; border-top: 1px solid #e5e7eb; }
+        .pied { margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 8px; color: #9ca3af; font-size: 9px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="entete">
+    <div class="titre">Portail ENSI</div>
+    <div class="sous">INPHB &#8212; Yamoussoukro &#183; Promotion ENSI</div>
+</div>
+
+<div class="doc">PROCÈS-VERBAL</div>
+<div class="objet" th:text="${pv.objet}">Objet du procès-verbal</div>
+<div class="meta">
+    <span th:text="${#temporals.format(pv.datePv, 'dd MMMM yyyy')}">01 janvier 2026</span>
+    <span th:if="${pv.lieu}"> &#183; <span th:text="${pv.lieu}">Lieu</span></span>
+</div>
+
+<div class="section" th:if="${pv.presents}">
+    <h4>Présents</h4>
+    <div class="corps" th:text="${pv.presents}">Liste des présents</div>
+</div>
+
+<div class="section" th:if="${pv.ordreDuJour}">
+    <h4>Ordre du jour</h4>
+    <div class="corps" th:text="${pv.ordreDuJour}">Ordre du jour</div>
+</div>
+
+<div class="section" th:if="${pv.decisions}">
+    <h4>Décisions</h4>
+    <div class="corps" th:text="${pv.decisions}">Décisions prises</div>
+</div>
+
+<div class="signatures" th:if="${pv.signataires}">
+    <h4 style="color:#0b5d3b; font-size:12px;">Signataires</h4>
+    <div class="corps" th:text="${pv.signataires}">Signataires</div>
+</div>
+
+<div class="pied">
+    Portail ENSI &#183; Document généré le <span th:text="${#temporals.format(dateEdition, 'dd/MM/yyyy')}">01/01/2026</span> &#183; INPHB Yamoussoukro
+</div>
+</body>
+</html>

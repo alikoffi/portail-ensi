@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+</head>
+<body style="margin:0; padding:0; background:#f6f8f7; font-family:Arial,Helvetica,sans-serif; color:#1f2937;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f8f7; padding:24px 0;">
+    <tr>
+        <td align="center">
+            <table width="580" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #eef2f0;">
+                <tr>
+                    <td style="background:#0b5d3b; padding:24px 28px;">
+                        <div style="color:#ffffff; font-size:20px; font-weight:bold;">Portail ENSI</div>
+                        <div style="color:#c9e7d7; font-size:12px;">Rappels de la promotion</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:28px;">
+                        <p style="font-size:15px; margin:0 0 18px;">Bonjour <strong th:text="${label}">Membre du bureau</strong>,</p>
+
+                        <!-- Evenements a venir -->
+                        <h3 style="color:#0b5d3b; font-size:15px; margin:0 0 8px;">Évènements à venir</h3>
+                        <div th:if="${#lists.isEmpty(evenements)}" style="font-size:13px; color:#6b7280; margin:0 0 20px;">
+                            Aucun évènement dans les prochains jours.
+                        </div>
+                        <table th:unless="${#lists.isEmpty(evenements)}" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px; border-collapse:collapse; font-size:13px;">
+                            <tr style="background:#0b5d3b; color:#ffffff;">
+                                <th align="left" style="padding:7px 10px;">Date</th>
+                                <th align="left" style="padding:7px 10px;">Évènement</th>
+                                <th align="left" style="padding:7px 10px;">Lieu</th>
+                            </tr>
+                            <tr th:each="e,i : ${evenements}" th:style="${i.odd} ? 'background:#f7faf8;' : ''">
+                                <td style="padding:6px 10px;" th:text="${#temporals.format(e.dateEvent, 'dd/MM/yyyy')}">01/01/2026</td>
+                                <td style="padding:6px 10px;" th:text="${e.nom}">Évènement</td>
+                                <td style="padding:6px 10px;" th:text="${e.lieu}">Lieu</td>
+                            </tr>
+                        </table>
+
+                        <!-- Cotisations en retard -->
+                        <h3 style="color:#b45309; font-size:15px; margin:0 0 8px;">Cotisations en retard</h3>
+                        <div th:if="${#lists.isEmpty(membresEnRetard)}" style="font-size:13px; color:#6b7280;">
+                            Aucun membre en retard. 🎉
+                        </div>
+                        <ul th:unless="${#lists.isEmpty(membresEnRetard)}" style="font-size:13px; color:#374151; margin:0; padding-left:18px;">
+                            <li th:each="m : ${membresEnRetard}" th:text="${m}" style="margin-bottom:4px;">Membre</li>
+                        </ul>
+
+                        <div style="text-align:center; margin:26px 0 6px;">
+                            <a th:href="${lien}"
+                               style="display:inline-block; background:#0b5d3b; color:#ffffff; text-decoration:none; font-weight:bold; font-size:14px; padding:11px 22px; border-radius:8px;">
+                                Ouvrir le portail
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:16px 28px; border-top:1px solid #eef2f0; font-size:11px; color:#9ca3af;">
+                        Portail ENSI &#183; Rappel automatique &#183; INPHB Yamoussoukro
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

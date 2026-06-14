@@ -1,0 +1,216 @@
+<div class="space-y-5">
+  <!-- Totaux -->
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <div class="text-xs text-gray-500">Recettes</div>
+      <div class="mt-1 text-xl font-bold text-emerald-600">{{ formater(totalRecettes()) }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <div class="text-xs text-gray-500">Dépenses</div>
+      <div class="mt-1 text-xl font-bold text-rose-600">{{ formater(totalDepenses()) }}</div>
+    </div>
+    <div class="bg-ensi-700 rounded-xl shadow-sm p-4 text-white">
+      <div class="text-xs text-white/70">Solde</div>
+      <div class="mt-1 text-xl font-bold">{{ formater(solde()) }}</div>
+    </div>
+  </div>
+
+  <!-- Barre d'actions -->
+  <!-- Barre d'actions -->
+  <div class="flex items-center justify-end gap-3 flex-wrap">
+    <button (click)="exporterPdf()" [disabled]="exportEnCours()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-60 transition-colors">
+      @if (exportEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-file-pdf"></i> }
+      Exporter PDF
+    </button>
+    @if (peutGerer()) {
+      <button (click)="ouvrirCreation()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 transition-colors">
+        <i class="pi pi-plus"></i> Nouvelle transaction
+      </button>
+    }
+  </div>
+
+  @if (erreur()) {
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm">
+      <i class="pi pi-exclamation-circle"></i> {{ erreur() }}
+    </div>
+  }
+
+  <!-- Journal -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <p-table
+      #dt
+      [value]="transactions()"
+      dataKey="id"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [globalFilterFields]="['libelle', 'categorie', 'type']"
+      [loading]="chargement()"
+      styleClass="p-datatable-sm"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}-{last} sur {totalRecords} transactions">
+
+      <ng-template pTemplate="caption">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-gray-700">Journal</span>
+          <span class="relative">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Rechercher…"
+              class="pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="libelle">Libellé <p-sortIcon field="libelle" /></th>
+          <th pSortableColumn="categorie">Catégorie <p-sortIcon field="categorie" /></th>
+          <th pSortableColumn="dateTx">Date <p-sortIcon field="dateTx" /></th>
+          <th pSortableColumn="type">Type <p-sortIcon field="type" /></th>
+          <th pSortableColumn="montant" class="text-right">Montant <p-sortIcon field="montant" /></th>
+          @if (peutGerer()) { <th class="w-20"></th> }
+        </tr>
+        <tr>
+          <th><p-columnFilter type="text" field="libelle" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
+          <th><p-columnFilter type="text" field="categorie" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
+          <th></th>
+          <th>
+            <p-columnFilter field="type" matchMode="equals" display="row" [showMenu]="false" [showClearButton]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <select (change)="filter($any($event.target).value)" class="w-full px-2 py-1.5 rounded-md border border-gray-300 text-xs bg-white outline-none">
+                  <option value="">Tous</option>
+                  <option value="RECETTE">Recette</option>
+                  <option value="DEPENSE">Dépense</option>
+                </select>
+              </ng-template>
+            </p-columnFilter>
+          </th>
+          <th></th>
+          @if (peutGerer()) { <th></th> }
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-t>
+        <tr class="hover:bg-gray-50/60">
+          <td>
+            <div class="flex items-center gap-3">
+              <span class="flex items-center justify-center w-8 h-8 rounded-full shrink-0"
+                [class.bg-emerald-50]="t.type === 'RECETTE'" [class.text-emerald-600]="t.type === 'RECETTE'"
+                [class.bg-rose-50]="t.type === 'DEPENSE'" [class.text-rose-600]="t.type === 'DEPENSE'">
+                <i class="pi text-xs" [class.pi-arrow-down-left]="t.type === 'RECETTE'" [class.pi-arrow-up-right]="t.type === 'DEPENSE'"></i>
+              </span>
+              <div>
+                <div class="font-medium text-gray-800">{{ t.libelle }}</div>
+                @if (t.note) { <div class="text-xs text-gray-400">{{ t.note }}</div> }
+              </div>
+            </div>
+          </td>
+          <td>
+            @if (t.categorie) { <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs">{{ t.categorie }}</span> } @else { <span class="text-gray-300">—</span> }
+          </td>
+          <td class="text-gray-500">{{ t.dateTx | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-medium"
+              [class.bg-emerald-50]="t.type === 'RECETTE'" [class.text-emerald-600]="t.type === 'RECETTE'"
+              [class.bg-rose-50]="t.type === 'DEPENSE'" [class.text-rose-600]="t.type === 'DEPENSE'">{{ t.type }}</span>
+          </td>
+          <td class="text-right font-semibold" [class.text-emerald-600]="t.type === 'RECETTE'" [class.text-rose-600]="t.type === 'DEPENSE'">
+            {{ t.type === 'RECETTE' ? '+' : '−' }}{{ formater(t.montant) }}
+          </td>
+          @if (peutGerer()) {
+            <td>
+              <div class="flex items-center gap-1 justify-end">
+                <button (click)="ouvrirEdition(t)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-ensi-50 hover:text-ensi-700" title="Modifier"><i class="pi pi-pencil text-sm"></i></button>
+                <button (click)="demanderSuppression(t)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600" title="Supprimer"><i class="pi pi-trash text-sm"></i></button>
+              </div>
+            </td>
+          }
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td [attr.colspan]="peutGerer() ? 6 : 5" class="text-center py-12 text-gray-400"><i class="pi pi-wallet text-3xl"></i><p class="mt-2 text-sm">Aucune transaction.</p></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Modal formulaire -->
+@if (modalOuvert()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="fermerModal()">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">{{ enEdition() ? 'Modifier la transaction' : 'Nouvelle transaction' }}</h2>
+        <button (click)="fermerModal()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="enregistrer()" class="p-6 space-y-4">
+        @if (erreurFormulaire()) {
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreurFormulaire() }}</div>
+        }
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Libellé *</label>
+          <input type="text" formControlName="libelle" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (form.controls.libelle.touched && form.controls.libelle.invalid) { <p class="mt-1 text-xs text-red-600">Le libellé est obligatoire.</p> }
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+            <select formControlName="type" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none">
+              <option value="RECETTE">Recette</option>
+              <option value="DEPENSE">Dépense</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Montant (FCFA) *</label>
+            <input type="number" formControlName="montant" min="0" step="0.01" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (form.controls.montant.touched && form.controls.montant.invalid) { <p class="mt-1 text-xs text-red-600">Montant positif requis.</p> }
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+            <input type="date" formControlName="dateTx" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (form.controls.dateTx.touched && form.controls.dateTx.invalid) { <p class="mt-1 text-xs text-red-600">La date est obligatoire.</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+            <select formControlName="categorie" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none">
+              <option value="">— Aucune —</option>
+              @for (c of categories(); track c) { <option [value]="c">{{ c }}</option> }
+              @if (form.controls.categorie.value && !categories().includes(form.controls.categorie.value)) {
+                <option [value]="form.controls.categorie.value">{{ form.controls.categorie.value }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+          <textarea formControlName="note" rows="2" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none resize-none"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" (click)="fermerModal()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="enregistrement()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
+            @if (enregistrement()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal suppression -->
+@if (aSupprimer()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="annulerSuppression()">
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-600 mx-auto"><i class="pi pi-exclamation-triangle text-xl"></i></div>
+      <h2 class="mt-4 text-center font-bold text-gray-800">Supprimer la transaction ?</h2>
+      <p class="mt-1 text-center text-sm text-gray-500">« {{ aSupprimer()?.libelle }} » sera définitivement supprimée.</p>
+      <div class="mt-6 flex items-center gap-3">
+        <button (click)="annulerSuppression()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+        <button (click)="confirmerSuppression()" [disabled]="suppressionEnCours()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60">
+          @if (suppressionEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-trash"></i> } Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+}

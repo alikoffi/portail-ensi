@@ -1,0 +1,375 @@
+<div class="max-w-6xl mx-auto space-y-6">
+  <!-- En-tête -->
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Membres &amp; cotisations</h1>
+      <p class="mt-1 text-sm text-gray-500">Annuaire de la promotion et suivi du recouvrement.</p>
+    </div>
+    @if (peutGererMembres()) {
+      <button (click)="ouvrirCreationMembre()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 transition-colors">
+        <i class="pi pi-user-plus"></i> Nouveau membre
+      </button>
+    }
+  </div>
+
+  <!-- Recouvrement -->
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div class="bg-ensi-700 rounded-xl shadow-sm p-4 text-white">
+      <div class="text-xs text-white/70">Total cotisé</div>
+      <div class="mt-1 text-xl font-bold">{{ formater(recouvrement()?.totalGeneral) }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <div class="text-xs text-gray-500">Membres</div>
+      <div class="mt-1 text-xl font-bold text-gray-800">{{ recouvrement()?.nombreMembres ?? '—' }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <div class="text-xs text-gray-500">Membres actifs</div>
+      <div class="mt-1 text-xl font-bold text-emerald-600">{{ recouvrement()?.nombreMembresActifs ?? '—' }}</div>
+    </div>
+  </div>
+
+  <!-- Évolution des cotisations -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-chart-line text-ensi-600"></i>
+          <h2 class="font-bold text-gray-800">Évolution des cotisations</h2>
+        </div>
+        @if (statsCotisations()) {
+          <p class="mt-1 text-sm text-gray-500">
+            Total {{ statsCotisations()?.annee }} :
+            <span class="font-semibold text-ensi-700">{{ formater(statsCotisations()?.totalAnnee) }}</span>
+          </p>
+        }
+      </div>
+
+      <!-- Filtre année (calendrier, vue année uniquement) -->
+      <div class="flex items-center gap-2">
+        <i class="pi pi-calendar text-gray-400"></i>
+        <p-datepicker
+          [ngModel]="anneeDate()"
+          (onSelect)="onAnneeSelect($event)"
+          view="year"
+          dateFormat="yy"
+          [readonlyInput]="true"
+          [showIcon]="false"
+          placeholder="Année"
+          inputStyleClass="!py-2 !px-3 !text-sm !w-24" />
+      </div>
+    </div>
+
+    <div class="h-60">
+      <canvas #canvasCotisations></canvas>
+    </div>
+  </div>
+
+  @if (erreur()) {
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreur() }}</div>
+  }
+
+  <!-- Tableau des membres (tri + filtres par colonne) -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <p-table
+      #dt
+      [value]="lignesMembres()"
+      dataKey="id"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [globalFilterFields]="['nomComplet', 'matricule', 'specialite', 'statut']"
+      [loading]="chargement()"
+      styleClass="p-datatable-sm"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}-{last} sur {totalRecords} membres">
+
+      <ng-template pTemplate="caption">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-gray-700">Annuaire</span>
+          <span class="relative">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Rechercher…"
+              class="pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="nomComplet">Membre <p-sortIcon field="nomComplet" /></th>
+          <th pSortableColumn="specialite">Spécialité <p-sortIcon field="specialite" /></th>
+          <th pSortableColumn="statut">Statut <p-sortIcon field="statut" /></th>
+          <th pSortableColumn="moisEnRetard">Cotisation <p-sortIcon field="moisEnRetard" /></th>
+          <th pSortableColumn="dernierPaiement">Dernier paiement <p-sortIcon field="dernierPaiement" /></th>
+          <th pSortableColumn="totalCotise" class="text-right">Total cotisé <p-sortIcon field="totalCotise" /></th>
+        </tr>
+        <tr>
+          <th><p-columnFilter type="text" field="nomComplet" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
+          <th><p-columnFilter type="text" field="specialite" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
+          <th>
+            <p-columnFilter field="statut" matchMode="equals" display="row" [showMenu]="false" [showClearButton]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <select (change)="filter($any($event.target).value)"
+                  class="w-full px-2 py-1.5 rounded-md border border-gray-300 text-xs bg-white outline-none">
+                  <option value="">Tous</option>
+                  <option value="ACTIF">ACTIF</option>
+                  <option value="INACTIF">INACTIF</option>
+                </select>
+              </ng-template>
+            </p-columnFilter>
+          </th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-m>
+        <tr class="cursor-pointer hover:bg-gray-50/60" (click)="ouvrirDetail(m.membre)">
+          <td>
+            <div class="flex items-center gap-3">
+              <span class="flex items-center justify-center w-9 h-9 rounded-full bg-ensi-600 text-white text-xs font-bold shrink-0">{{ initiales(m.membre) }}</span>
+              <div>
+                <div class="font-medium text-gray-800">{{ m.nomComplet }}</div>
+                <div class="text-xs text-gray-400">{{ m.matricule || '—' }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="text-gray-600">{{ m.specialite || '—' }}</td>
+          <td>
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-medium"
+              [class.bg-emerald-50]="m.statut === 'ACTIF'" [class.text-emerald-600]="m.statut === 'ACTIF'"
+              [class.bg-gray-100]="m.statut !== 'ACTIF'" [class.text-gray-500]="m.statut !== 'ACTIF'">{{ m.statut }}</span>
+          </td>
+          <td>
+            @if (m.statut !== 'ACTIF') {
+              <span class="text-xs text-gray-400">—</span>
+            } @else if (m.moisEnRetard === 0) {
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium"><i class="pi pi-check-circle text-[10px]"></i> À jour</span>
+            } @else {
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-[11px] font-medium"><i class="pi pi-exclamation-circle text-[10px]"></i> {{ m.moisEnRetard }} mois</span>
+            }
+          </td>
+          <td class="text-gray-600">{{ m.dernierPaiement ? (m.dernierPaiement | date: 'dd/MM/yyyy') : '—' }}</td>
+          <td class="text-right font-semibold text-ensi-700">{{ formater(m.totalCotise) }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="pi pi-users text-3xl"></i><p class="mt-2 text-sm">Aucun membre.</p></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- ============ Drawer détail membre ============ -->
+@if (membreSelectionne(); as m) {
+  <div class="fixed inset-0 z-50 flex justify-end bg-black/40" (click)="fermerDetail()">
+    <div class="w-full max-w-lg h-full bg-white shadow-xl overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+        <h2 class="font-bold text-gray-800">Fiche membre</h2>
+        <div class="flex items-center gap-2">
+          @if (peutGererMembres()) {
+            <button (click)="ouvrirEditionMembre(m)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-ensi-700 hover:bg-ensi-50"><i class="pi pi-pencil"></i> Modifier</button>
+            <button (click)="demanderSuppressionMembre(m)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-red-600 hover:bg-red-50"><i class="pi pi-trash"></i></button>
+          }
+          <button (click)="fermerDetail()" class="text-gray-400 hover:text-gray-600 p-1.5"><i class="pi pi-times"></i></button>
+        </div>
+      </div>
+
+      <div class="p-6 space-y-6">
+        <!-- Identité -->
+        <div class="flex items-center gap-4">
+          <span class="flex items-center justify-center w-14 h-14 rounded-full bg-ensi-600 text-white text-lg font-bold">{{ initiales(m) }}</span>
+          <div>
+            <div class="text-lg font-bold text-gray-800">{{ m.nom }} {{ m.prenoms }}</div>
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-medium"
+              [class.bg-emerald-50]="m.statut === 'ACTIF'" [class.text-emerald-600]="m.statut === 'ACTIF'"
+              [class.bg-gray-100]="m.statut !== 'ACTIF'" [class.text-gray-500]="m.statut !== 'ACTIF'">{{ m.statut }}</span>
+          </div>
+        </div>
+
+        <!-- Infos -->
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><div class="text-xs text-gray-400">Matricule</div><div class="text-gray-800">{{ m.matricule || '—' }}</div></div>
+          <div><div class="text-xs text-gray-400">Spécialité</div><div class="text-gray-800">{{ m.specialite || '—' }}</div></div>
+          <div><div class="text-xs text-gray-400">Email</div><div class="text-gray-800 break-all">{{ m.email || '—' }}</div></div>
+          <div><div class="text-xs text-gray-400">Téléphone</div><div class="text-gray-800">{{ m.telephone || '—' }}</div></div>
+          <div><div class="text-xs text-gray-400">Adhésion</div><div class="text-gray-800">{{ m.dateAdhesion ? (m.dateAdhesion | date: 'dd/MM/yyyy') : '—' }}</div></div>
+        </div>
+
+        <!-- Cotisations -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-gray-800">Cotisations <span class="text-sm font-normal text-ensi-700">· {{ formater(totalMembre(m.id)) }}</span></h3>
+            @if (peutGererCotisations()) {
+              <button (click)="ouvrirAjoutCotisation()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-ensi-700 hover:bg-ensi-50"><i class="pi pi-plus"></i> Paiement</button>
+            }
+          </div>
+
+          @if (chargementCotisations()) {
+            <div class="space-y-2">@for (i of [1,2,3]; track i) { <div class="h-12 rounded-lg bg-gray-50 animate-pulse"></div> }</div>
+          } @else if (cotisations().length === 0) {
+            <p class="text-sm text-gray-400 py-6 text-center">Aucune cotisation enregistrée.</p>
+          } @else {
+            <ul class="divide-y divide-gray-100">
+              @for (c of cotisations(); track c.id) {
+                <li class="flex items-center justify-between gap-3 py-3">
+                  <div>
+                    <div class="font-medium text-gray-800">{{ formaterPeriode(c.periode) }}</div>
+                    <div class="text-xs text-gray-400">{{ c.datePaiement | date: 'dd/MM/yyyy' }}{{ c.note ? ' · ' + c.note : '' }}</div>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="font-semibold text-emerald-600">+{{ formater(c.montant) }}</span>
+                    @if (peutGererCotisations()) {
+                      <button (click)="demanderSuppressionCotisation(c)" class="flex items-center justify-center w-7 h-7 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-600"><i class="pi pi-trash text-xs"></i></button>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============ Modal membre ============ -->
+@if (modalMembre()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="fermerModalMembre()">
+    <div class="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
+      <div class="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+        <h2 class="font-bold text-gray-800">{{ enEditionMembre() ? 'Modifier le membre' : 'Nouveau membre' }}</h2>
+        <button (click)="fermerModalMembre()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+      </div>
+      <form [formGroup]="formMembre" (ngSubmit)="enregistrerMembre()" class="p-6 space-y-4">
+        @if (erreurMembre()) { <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreurMembre() }}</div> }
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+            <input type="text" formControlName="nom" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (formMembre.controls.nom.touched && formMembre.controls.nom.invalid) { <p class="mt-1 text-xs text-red-600">Le nom est obligatoire.</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prénoms</label>
+            <input type="text" formControlName="prenoms" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Matricule</label>
+            <input type="text" formControlName="matricule" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Spécialité</label>
+            <select formControlName="specialite" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none">
+              <option value="">— Aucune —</option>
+              @for (s of specialites(); track s) { <option [value]="s">{{ s }}</option> }
+              @if (formMembre.controls.specialite.value && !specialites().includes(formMembre.controls.specialite.value)) {
+                <option [value]="formMembre.controls.specialite.value">{{ formMembre.controls.specialite.value }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" formControlName="email" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (formMembre.controls.email.touched && formMembre.controls.email.invalid) { <p class="mt-1 text-xs text-red-600">Email invalide.</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+            <input type="text" formControlName="telephone" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <select formControlName="statut" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none">
+              <option value="ACTIF">Actif</option>
+              <option value="INACTIF">Inactif</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date d'adhésion</label>
+            <input type="date" formControlName="dateAdhesion" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" (click)="fermerModalMembre()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="enregistrementMembre()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
+            @if (enregistrementMembre()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ============ Modal cotisation ============ -->
+@if (modalCotisation()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="fermerModalCotisation()">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">Nouveau paiement — {{ membreSelectionne()?.nom }} {{ membreSelectionne()?.prenoms }}</h2>
+        <button (click)="fermerModalCotisation()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+      </div>
+      <form [formGroup]="formCotisation" (ngSubmit)="enregistrerCotisation()" class="p-6 space-y-4">
+        @if (erreurCotisation()) { <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreurCotisation() }}</div> }
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Période *</label>
+            <input type="month" formControlName="periode" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (formCotisation.controls.periode.touched && formCotisation.controls.periode.invalid) { <p class="mt-1 text-xs text-red-600">Requis.</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Montant (FCFA) *</label>
+            <input type="number" formControlName="montant" min="0" step="0.01" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (formCotisation.controls.montant.touched && formCotisation.controls.montant.invalid) { <p class="mt-1 text-xs text-red-600">Montant positif requis.</p> }
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Date de paiement *</label>
+          <input type="date" formControlName="datePaiement" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (formCotisation.controls.datePaiement.touched && formCotisation.controls.datePaiement.invalid) { <p class="mt-1 text-xs text-red-600">La date est obligatoire.</p> }
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+          <input type="text" formControlName="note" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" (click)="fermerModalCotisation()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="enregistrementCotisation()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
+            @if (enregistrementCotisation()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ============ Modal suppression ============ -->
+@if (membreASupprimer() || cotisationASupprimer()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="annulerSuppression()">
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-600 mx-auto"><i class="pi pi-exclamation-triangle text-xl"></i></div>
+      <h2 class="mt-4 text-center font-bold text-gray-800">
+        {{ membreASupprimer() ? 'Supprimer le membre ?' : 'Supprimer la cotisation ?' }}
+      </h2>
+      <p class="mt-1 text-center text-sm text-gray-500">
+        @if (membreASupprimer()) {
+          « {{ membreASupprimer()?.nom }} {{ membreASupprimer()?.prenoms }} » et ses cotisations seront supprimés.
+        } @else {
+          La cotisation « {{ cotisationASupprimer()?.periode }} » sera supprimée.
+        }
+      </p>
+      <div class="mt-6 flex items-center gap-3">
+        <button (click)="annulerSuppression()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+        <button (click)="confirmerSuppression()" [disabled]="suppressionEnCours()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60">
+          @if (suppressionEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-trash"></i> } Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+}

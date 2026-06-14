@@ -1,0 +1,211 @@
+<div class="max-w-6xl mx-auto space-y-6">
+  <!-- En-tête -->
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Planning</h1>
+      <p class="mt-1 text-sm text-gray-500">Évènements et agenda de la promotion.</p>
+    </div>
+    @if (peutGerer()) {
+      <button
+        (click)="ouvrirCreation()"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 transition-colors"
+      >
+        <i class="pi pi-plus"></i> Nouvel évènement
+      </button>
+    }
+  </div>
+
+  <!-- Filtres -->
+  <div class="flex items-center gap-3 flex-wrap">
+    <div class="relative flex-1 min-w-[220px]">
+      <i class="pi pi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+      <input
+        type="text"
+        [value]="recherche()"
+        (input)="recherche.set($any($event.target).value)"
+        placeholder="Rechercher un évènement, un lieu…"
+        class="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none transition"
+      />
+    </div>
+    <select
+      [value]="typeFiltre()"
+      (change)="typeFiltre.set($any($event.target).value)"
+      class="px-3 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none"
+    >
+      <option value="">Tous les types</option>
+      @for (t of typesDisponibles(); track t) {
+        <option [value]="t">{{ t }}</option>
+      }
+    </select>
+  </div>
+
+  @if (erreur()) {
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm">
+      <i class="pi pi-exclamation-circle"></i> {{ erreur() }}
+    </div>
+  }
+
+  <!-- Liste -->
+  @if (chargement()) {
+    <div class="space-y-3">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="h-20 rounded-xl bg-gray-100 animate-pulse"></div>
+      }
+    </div>
+  } @else if (evenementsFiltres().length === 0) {
+    <div class="text-center py-16 text-gray-400">
+      <i class="pi pi-calendar text-4xl"></i>
+      <p class="mt-3 text-sm">Aucun évènement à afficher.</p>
+    </div>
+  } @else {
+    <ul class="space-y-3">
+      @for (ev of evenementsFiltres(); track ev.id) {
+        <li
+          class="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+          [class.opacity-60]="estPasse(ev.dateEvent)"
+        >
+          <!-- Date -->
+          <div class="flex flex-col items-center justify-center w-16 h-16 rounded-xl bg-ensi-50 text-ensi-700 shrink-0">
+            <span class="text-xs font-medium uppercase">{{ ev.dateEvent | date: 'MMM' }}</span>
+            <span class="text-2xl font-extrabold leading-none">{{ ev.dateEvent | date: 'd' }}</span>
+            <span class="text-[10px] text-ensi-500">{{ ev.dateEvent | date: 'yyyy' }}</span>
+          </div>
+
+          <!-- Infos -->
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-gray-800 truncate">{{ ev.nom }}</h3>
+              @if (estPasse(ev.dateEvent)) {
+                <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px]">Passé</span>
+              }
+            </div>
+            <div class="mt-1 flex items-center gap-x-4 gap-y-1 flex-wrap text-xs text-gray-500">
+              @if (ev.heure) { <span><i class="pi pi-clock text-[10px]"></i> {{ ev.heure }}</span> }
+              @if (ev.lieu) { <span class="truncate"><i class="pi pi-map-marker text-[10px]"></i> {{ ev.lieu }}</span> }
+              @if (ev.type) { <span class="px-2 py-0.5 rounded-full bg-ensi-50 text-ensi-700">{{ ev.type }}</span> }
+            </div>
+            @if (ev.description) {
+              <p class="mt-1.5 text-sm text-gray-500 line-clamp-1">{{ ev.description }}</p>
+            }
+          </div>
+
+          <!-- Actions admin -->
+          @if (peutGerer()) {
+            <div class="flex items-center gap-1 shrink-0">
+              <button
+                (click)="ouvrirEdition(ev)"
+                class="flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:bg-ensi-50 hover:text-ensi-700 transition-colors"
+                title="Modifier"
+              >
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button
+                (click)="demanderSuppression(ev)"
+                class="flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                title="Supprimer"
+              >
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<!-- ============ Modal formulaire ============ -->
+@if (modalOuvert()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="fermerModal()">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">
+          {{ enEdition() ? 'Modifier l’évènement' : 'Nouvel évènement' }}
+        </h2>
+        <button (click)="fermerModal()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="enregistrer()" class="p-6 space-y-4">
+        @if (erreurFormulaire()) {
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 text-sm">
+            <i class="pi pi-exclamation-circle"></i> {{ erreurFormulaire() }}
+          </div>
+        }
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+          <input type="text" formControlName="nom" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (form.controls.nom.touched && form.controls.nom.invalid) {
+            <p class="mt-1 text-xs text-red-600">Le nom est obligatoire.</p>
+          }
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+            <input type="date" formControlName="dateEvent" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (form.controls.dateEvent.touched && form.controls.dateEvent.invalid) {
+              <p class="mt-1 text-xs text-red-600">La date est obligatoire.</p>
+            }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+            <input type="text" formControlName="heure" placeholder="18h00" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select formControlName="type" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none">
+              <option value="">— Aucun —</option>
+              @for (t of typesEvenement(); track t) { <option [value]="t">{{ t }}</option> }
+              @if (form.controls.type.value && !typesEvenement().includes(form.controls.type.value)) {
+                <option [value]="form.controls.type.value">{{ form.controls.type.value }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Lieu</label>
+            <input type="text" formControlName="lieu" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea formControlName="description" rows="3" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" (click)="fermerModal()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="enregistrement()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
+            @if (enregistrement()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ============ Modal suppression ============ -->
+@if (evenementASupprimer()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="annulerSuppression()">
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-600 mx-auto">
+        <i class="pi pi-exclamation-triangle text-xl"></i>
+      </div>
+      <h2 class="mt-4 text-center font-bold text-gray-800">Supprimer l'évènement ?</h2>
+      <p class="mt-1 text-center text-sm text-gray-500">
+        « {{ evenementASupprimer()?.nom }} » sera définitivement supprimé.
+      </p>
+      <div class="mt-6 flex items-center gap-3">
+        <button (click)="annulerSuppression()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+        <button (click)="confirmerSuppression()" [disabled]="suppressionEnCours()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60">
+          @if (suppressionEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-trash"></i> }
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+}

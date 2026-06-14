@@ -1,0 +1,42 @@
+/* PrimeIcons */
+@import 'primeicons/primeicons.css';
+
+/* Police */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ensi-600: #0b5d3b;
+  --ensi-500: #1f7d56;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #f6f8f7;
+  color: #1f2937;
+}
+
+/* Scrollbar discrète */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c5d2cb;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9fb3a8;
+}

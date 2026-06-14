@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        @page { size: A4; margin: 1.8cm 1.6cm; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Helvetica', sans-serif; color: #1f2937; font-size: 11px; }
+        .entete { border-bottom: 3px solid #0b5d3b; padding-bottom: 10px; margin-bottom: 18px; }
+        .entete .titre { color: #0b5d3b; font-size: 20px; font-weight: bold; }
+        .entete .sous { color: #6b7280; font-size: 11px; }
+        .entete .doc { margin-top: 8px; font-size: 15px; font-weight: bold; }
+        .meta { color: #6b7280; font-size: 10px; margin-bottom: 14px; }
+        .equilibre { padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; font-weight: bold; }
+        .ok { background: #ecfdf5; color: #047857; }
+        .ko { background: #fffbeb; color: #b45309; }
+        table.bilan { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        table.bilan th { color: #fff; text-align: left; padding: 7px 8px; font-size: 11px; }
+        table.bilan.actif th { background: #0b5d3b; }
+        table.bilan.passif th { background: #b45309; }
+        table.bilan td { padding: 6px 8px; border-bottom: 1px solid #eef2f0; }
+        .montant { text-align: right; font-weight: bold; }
+        .total td { border-top: 2px solid #d1d5db; font-weight: bold; background: #f3f4f6; }
+        .colonnes { width: 100%; }
+        .colonnes td { vertical-align: top; width: 50%; padding: 0 6px; }
+        .pied { margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 8px; color: #9ca3af; font-size: 9px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="entete">
+    <div class="titre">Portail ENSI</div>
+    <div class="sous">INPHB &#8212; Yamoussoukro &#183; Promotion ENSI</div>
+    <div class="doc">Bilan simplifié</div>
+</div>
+
+<div class="meta">
+    Édité le <span th:text="${#temporals.format(dateEdition, 'dd/MM/yyyy')}">01/01/2026</span>
+</div>
+
+<div th:classappend="${bilan.equilibre} ? 'ok' : 'ko'" class="equilibre">
+    <span th:if="${bilan.equilibre}">Bilan équilibré</span>
+    <span th:unless="${bilan.equilibre}">Bilan déséquilibré</span>
+    &#183;
+    Total actif <span th:text="${#numbers.formatInteger(bilan.totalActif, 1, 'WHITESPACE')}">0</span> FCFA
+    &#183;
+    Total passif <span th:text="${#numbers.formatInteger(bilan.totalPassif, 1, 'WHITESPACE')}">0</span> FCFA
+</div>
+
+<table class="colonnes">
+    <tr>
+        <td>
+            <table class="bilan actif">
+                <thead>
+                <tr><th>Actif</th><th style="text-align:right;">Montant</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${bilan.actifs}">
+                    <td th:text="${r.rubrique}">Rubrique</td>
+                    <td class="montant"><span th:text="${#numbers.formatInteger(r.montant, 1, 'WHITESPACE')}">0</span></td>
+                </tr>
+                <tr class="total">
+                    <td>Total actif</td>
+                    <td class="montant"><span th:text="${#numbers.formatInteger(bilan.totalActif, 1, 'WHITESPACE')}">0</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+        <td>
+            <table class="bilan passif">
+                <thead>
+                <tr><th>Passif</th><th style="text-align:right;">Montant</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${bilan.passifs}">
+                    <td th:text="${r.rubrique}">Rubrique</td>
+                    <td class="montant"><span th:text="${#numbers.formatInteger(r.montant, 1, 'WHITESPACE')}">0</span></td>
+                </tr>
+                <tr class="total">
+                    <td>Total passif</td>
+                    <td class="montant"><span th:text="${#numbers.formatInteger(bilan.totalPassif, 1, 'WHITESPACE')}">0</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<div class="pied">
+    Portail ENSI &#183; Document généré automatiquement &#183; INPHB Yamoussoukro
+</div>
+</body>
+</html>
