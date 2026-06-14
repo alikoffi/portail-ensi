@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,10 +71,12 @@ public class MembreFacade {
     public RecouvrementDto recouvrement() {
         Map<Long, BigDecimal> totalParMembre = new HashMap<>();
         Map<Long, Long> nbParMembre = new HashMap<>();
+        Map<Long, LocalDate> dernierParMembre = new HashMap<>();
         for (Object[] ligne : cotisationRepository.agregatParMembre()) {
             Long membreId = (Long) ligne[0];
             totalParMembre.put(membreId, (BigDecimal) ligne[1]);
             nbParMembre.put(membreId, (Long) ligne[2]);
+            dernierParMembre.put(membreId, (LocalDate) ligne[3]);
         }
 
         List<Membre> membres = membreRepository.findAllByOrderByNomAscPrenomsAsc();
@@ -82,7 +85,8 @@ public class MembreFacade {
         for (Membre membre : membres) {
             BigDecimal total = totalParMembre.getOrDefault(membre.getId(), BigDecimal.ZERO);
             long nb = nbParMembre.getOrDefault(membre.getId(), 0L);
-            lignes.add(new MembreRecouvrementDto(membre, total, nb));
+            LocalDate dernier = dernierParMembre.get(membre.getId());
+            lignes.add(new MembreRecouvrementDto(membre, total, nb, dernier));
             if (membre.getStatut() == StatutMembre.ACTIF) {
                 nbActifs++;
             }

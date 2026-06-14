@@ -1,18 +1,21 @@
 import { AfterViewInit, Component, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
+import { TableModule } from 'primeng/table';
+import { DatePickerModule } from 'primeng/datepicker';
 import { AuthService } from '@/core/services/auth.service';
 import { MembreService } from '@/core/services/membre.service';
-import { Cotisation, Membre, Recouvrement, StatistiqueCotisation, StatutMembre } from '@/core/models/membre.model';
+import { LigneMembre, Membre, Recouvrement, StatistiqueCotisation, StatutMembre } from '@/core/models/membre.model';
+import { Cotisation } from '@/core/models/membre.model';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-membres',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TableModule, DatePickerModule],
   templateUrl: './membres.component.html'
 })
 export class MembresComponent implements OnInit, AfterViewInit {
@@ -33,9 +36,6 @@ export class MembresComponent implements OnInit, AfterViewInit {
   readonly canvasCotisations = viewChild<ElementRef<HTMLCanvasElement>>('canvasCotisations');
   private chartCotisations?: Chart;
   private vueInitialisee = false;
-
-  readonly recherche = signal('');
-  readonly statutFiltre = signal<'' | StatutMembre>('');
 
   // Drawer détail
   readonly membreSelectionne = signal<Membre | null>(null);
@@ -85,20 +85,32 @@ export class MembresComponent implements OnInit, AfterViewInit {
     return map;
   });
 
-  readonly membresFiltres = computed(() => {
-    const q = this.recherche().trim().toLowerCase();
-    const statut = this.statutFiltre();
-    return this.membres().filter((m) => {
-      const okStatut = !statut || m.statut === statut;
-      const okTexte =
-        !q ||
-        m.nom.toLowerCase().includes(q) ||
-        (m.prenoms ?? '').toLowerCase().includes(q) ||
-        (m.matricule ?? '').toLowerCase().includes(q) ||
-        (m.specialite ?? '').toLowerCase().includes(q);
-      return okStatut && okTexte;
-    });
+  readonly dernierParMembre = computed(() => {
+    const map = new Map<number, string | null>();
+    for (const r of this.recouvrement()?.membres ?? []) {
+      map.set(r.id, r.dernierPaiement ?? null);
+    }
+    return map;
   });
+
+  /** Lignes aplaties pour le p-table (tri + filtres par colonne). */
+  readonly lignesMembres = computed<LigneMembre[]>(() => {
+    const totals = this.totalParMembre();
+    const derniers = this.dernierParMembre();
+    return this.membres().map((m) => ({
+      membre: m,
+      id: m.id!,
+      nomComplet: `${m.nom} ${m.prenoms ?? ''}`.trim(),
+      matricule: m.matricule ?? '',
+      specialite: m.specialite ?? '',
+      statut: m.statut,
+      totalCotise: totals.get(m.id!) ?? 0,
+      dernierPaiement: derniers.get(m.id!) ?? null
+    }));
+  });
+
+  // Sélecteur d'année (DatePicker PrimeNG, vue année)
+  readonly anneeDate = signal<Date | null>(null);
 
   ngOnInit(): void {
     this.charger();
@@ -131,14 +143,17 @@ export class MembresComponent implements OnInit, AfterViewInit {
       next: (s) => {
         this.statsCotisations.set(s);
         this.anneeSelectionnee.set(s.annee);
+        this.anneeDate.set(new Date(s.annee, 0, 1));
         this.dessinerGraphique();
       },
       error: () => {}
     });
   }
 
-  changerAnnee(annee: number): void {
-    this.chargerStatistiques(annee);
+  onAnneeSelect(date: Date): void {
+    if (date) {
+      this.chargerStatistiques(date.getFullYear());
+    }
   }
 
   private dessinerGraphique(): void {

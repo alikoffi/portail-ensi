@@ -3,6 +3,7 @@ package ci.inphb.ensi.portail.presentation.dto;
 import ci.inphb.ensi.portail.domain.Membre;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * Ligne de recouvrement : un membre et le cumul de ses cotisations.
@@ -15,14 +16,16 @@ public class MembreRecouvrementDto {
     private String statut;
     private BigDecimal totalCotise;
     private long nombrePaiements;
+    private LocalDate dernierPaiement;
 
-    public MembreRecouvrementDto(Membre membre, BigDecimal totalCotise, long nombrePaiements) {
+    public MembreRecouvrementDto(Membre membre, BigDecimal totalCotise, long nombrePaiements, LocalDate dernierPaiement) {
         this.id = membre.getId();
         this.nom = membre.getNom();
         this.prenoms = membre.getPrenoms();
         this.statut = membre.getStatut().name();
         this.totalCotise = totalCotise;
         this.nombrePaiements = nombrePaiements;
+        this.dernierPaiement = dernierPaiement;
     }
 
     public Long getId() {
@@ -47,5 +50,9 @@ public class MembreRecouvrementDto {
 
     public long getNombrePaiements() {
         return nombrePaiements;
+    }
+
+    public LocalDate getDernierPaiement() {
+        return dernierPaiement;
     }
 }

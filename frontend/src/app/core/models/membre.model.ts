@@ -29,6 +29,19 @@ export interface MembreRecouvrement {
   statut: StatutMembre;
   totalCotise: number;
   nombrePaiements: number;
+  dernierPaiement?: string | null;
+}
+
+/** Ligne aplatie pour le tableau des membres (tri/filtre PrimeNG). */
+export interface LigneMembre {
+  membre: Membre;
+  id: number;
+  nomComplet: string;
+  matricule: string;
+  specialite: string;
+  statut: StatutMembre;
+  totalCotise: number;
+  dernierPaiement: string | null;
 }
 
 export interface Recouvrement {

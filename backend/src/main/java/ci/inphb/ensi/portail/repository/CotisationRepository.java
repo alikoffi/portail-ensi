@@ -18,8 +18,8 @@ public interface CotisationRepository extends JpaRepository<Cotisation, Long> {
     @Query("SELECT COALESCE(SUM(c.montant), 0) FROM Cotisation c")
     BigDecimal totalGeneral();
 
-    /** {membreId, total, nombre} agrege par membre. */
-    @Query("SELECT c.membre.id, SUM(c.montant), COUNT(c) FROM Cotisation c GROUP BY c.membre.id")
+    /** {membreId, total, nombre, dernierPaiement} agrege par membre. */
+    @Query("SELECT c.membre.id, SUM(c.montant), COUNT(c), MAX(c.datePaiement) FROM Cotisation c GROUP BY c.membre.id")
     List<Object[]> agregatParMembre();
 
     /** Annees distinctes presentes dans les paiements, les plus recentes d'abord. */
