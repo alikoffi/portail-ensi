@@ -49,6 +49,9 @@ public class Utilisateur extends AbstractEntity {
     @Column(name = "actif", nullable = false)
     private boolean actif = true;
 
+    @Column(name = "derniere_connexion")
+    private java.time.LocalDateTime derniereConnexion;
+
     public Utilisateur() {
     }
 
@@ -111,5 +114,13 @@ public class Utilisateur extends AbstractEntity {
 
     public void setActif(boolean actif) {
         this.actif = actif;
+    }
+
+    public java.time.LocalDateTime getDerniereConnexion() {
+        return derniereConnexion;
+    }
+
+    public void setDerniereConnexion(java.time.LocalDateTime derniereConnexion) {
+        this.derniereConnexion = derniereConnexion;
     }
 }

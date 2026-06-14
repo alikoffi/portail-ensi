@@ -42,6 +42,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// Chargement d'un fichier .env (secrets hors du depot)
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 
 	// Generation PDF (HTML -> PDF)
 	implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'

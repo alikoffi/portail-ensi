@@ -28,7 +28,7 @@ public class AuthFacade {
         this.jwtTokenUtils = jwtTokenUtils;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         Utilisateur utilisateur = utilisateurRepository.findByUsername(request.getUsername())
                 .orElseThrow(PortailException::identifiantsInvalides);
@@ -36,6 +36,8 @@ public class AuthFacade {
         if (!utilisateur.isActif() || !passwordEncoder.matches(request.getPassword(), utilisateur.getPasswordHash())) {
             throw PortailException.identifiantsInvalides();
         }
+
+        utilisateur.setDerniereConnexion(java.time.LocalDateTime.now());
 
         String token = jwtTokenUtils.generateToken(utilisateur);
         return new LoginResponse(token, utilisateur);

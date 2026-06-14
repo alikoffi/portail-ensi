@@ -44,6 +44,7 @@
           <th pSortableColumn="username">Utilisateur <p-sortIcon field="username" /></th>
           <th pSortableColumn="email">Email <p-sortIcon field="email" /></th>
           <th pSortableColumn="role">Rôle <p-sortIcon field="role" /></th>
+          <th pSortableColumn="derniereConnexion">Dernière connexion <p-sortIcon field="derniereConnexion" /></th>
           <th pSortableColumn="actif">Statut <p-sortIcon field="actif" /></th>
           <th class="text-right">Actions</th>
         </tr>
@@ -62,6 +63,7 @@
           </th>
           <th></th>
           <th></th>
+          <th></th>
         </tr>
       </ng-template>
 
@@ -78,6 +80,7 @@
           </td>
           <td class="text-gray-600 break-all">{{ u.email || '—' }}</td>
           <td><span class="px-2.5 py-1 rounded-full text-[11px] font-semibold {{ couleurRole(u.role) }}">{{ libelleRole(u.role) }}</span></td>
+          <td class="text-gray-500 text-sm">{{ u.derniereConnexion ? (u.derniereConnexion | date: 'dd/MM/yyyy HH:mm') : 'Jamais' }}</td>
           <td>
             <span class="inline-flex items-center gap-1.5 text-xs font-medium" [class.text-emerald-600]="u.actif" [class.text-gray-400]="!u.actif">
               <span class="w-2 h-2 rounded-full" [class.bg-emerald-500]="u.actif" [class.bg-gray-300]="!u.actif"></span>
@@ -98,7 +101,7 @@
       </ng-template>
 
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="pi pi-users text-3xl"></i><p class="mt-2 text-sm">Aucun compte.</p></td></tr>
+        <tr><td colspan="6" class="text-center py-12 text-gray-400"><i class="pi pi-users text-3xl"></i><p class="mt-2 text-sm">Aucun compte.</p></td></tr>
       </ng-template>
     </p-table>
   </div>

@@ -9,6 +9,7 @@ import ci.inphb.ensi.portail.presentation.dto.ModificationUtilisateurDto;
 import ci.inphb.ensi.portail.presentation.dto.ProfilDto;
 import ci.inphb.ensi.portail.presentation.dto.UtilisateurDto;
 import ci.inphb.ensi.portail.repository.UtilisateurRepository;
+import ci.inphb.ensi.portail.service.MailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,13 @@ public class UtilisateurFacade {
 
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
-    public UtilisateurFacade(UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder) {
+    public UtilisateurFacade(UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder,
+                             MailService mailService) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
+        this.mailService = mailService;
     }
 
     @Transactional(readOnly = true)
@@ -49,7 +53,9 @@ public class UtilisateurFacade {
                 dto.getLabel()
         );
         utilisateur.setEmail(dto.getEmail());
-        return new UtilisateurDto(utilisateurRepository.save(utilisateur));
+        Utilisateur cree = utilisateurRepository.save(utilisateur);
+        mailService.envoyerBienvenue(cree, dto.getPassword());
+        return new UtilisateurDto(cree);
     }
 
     @Transactional

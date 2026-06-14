@@ -1,6 +1,7 @@
 .gradle/
 build/
 bin/
+.env
 !gradle/wrapper/gradle-wrapper.jar
 .idea/
 *.iml

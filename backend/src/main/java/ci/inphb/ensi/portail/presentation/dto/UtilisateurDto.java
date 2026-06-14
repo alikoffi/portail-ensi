@@ -2,6 +2,8 @@ package ci.inphb.ensi.portail.presentation.dto;
 
 import ci.inphb.ensi.portail.domain.Utilisateur;
 
+import java.time.LocalDateTime;
+
 public class UtilisateurDto {
 
     private Long id;
@@ -10,6 +12,7 @@ public class UtilisateurDto {
     private String label;
     private String email;
     private boolean actif;
+    private LocalDateTime derniereConnexion;
 
     public UtilisateurDto() {
     }
@@ -21,6 +24,7 @@ public class UtilisateurDto {
         this.label = utilisateur.getLabel();
         this.email = utilisateur.getEmail();
         this.actif = utilisateur.isActif();
+        this.derniereConnexion = utilisateur.getDerniereConnexion();
     }
 
     public Long getId() {
@@ -69,5 +73,13 @@ public class UtilisateurDto {
 
     public void setActif(boolean actif) {
         this.actif = actif;
+    }
+
+    public LocalDateTime getDerniereConnexion() {
+        return derniereConnexion;
+    }
+
+    public void setDerniereConnexion(LocalDateTime derniereConnexion) {
+        this.derniereConnexion = derniereConnexion;
     }
 }

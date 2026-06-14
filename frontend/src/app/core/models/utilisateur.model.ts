@@ -19,4 +19,5 @@ export interface Utilisateur {
   label: string;
   email?: string | null;
   actif: boolean;
+  derniereConnexion?: string | null;
 }

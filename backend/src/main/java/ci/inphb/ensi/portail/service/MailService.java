@@ -1,0 +1,79 @@
+package ci.inphb.ensi.portail.service;
+
+import ci.inphb.ensi.portail.domain.Utilisateur;
+import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Envoi d'emails (HTML via templates Thymeleaf), de maniere asynchrone.
+ */
+@Service
+public class MailService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MailService.class);
+
+    private final JavaMailSender mailSender;
+    private final HtmlRenderService htmlRenderService;
+
+    @Value("${app.mail.enabled:false}")
+    private boolean mailActive;
+
+    @Value("${app.mail.from:no-reply@ensi.ci}")
+    private String expediteur;
+
+    @Value("${app.base-url:http://localhost:4200}")
+    private String urlApplication;
+
+    public MailService(JavaMailSender mailSender, HtmlRenderService htmlRenderService) {
+        this.mailSender = mailSender;
+        this.htmlRenderService = htmlRenderService;
+    }
+
+    /**
+     * Email de bienvenue a la creation d'un compte : lien de l'application + identifiants.
+     */
+    @Async
+    public void envoyerBienvenue(Utilisateur utilisateur, String motDePasseClair) {
+        if (!StringUtils.hasText(utilisateur.getEmail())) {
+            return;
+        }
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("label", StringUtils.hasText(utilisateur.getLabel()) ? utilisateur.getLabel() : utilisateur.getUsername());
+        variables.put("username", utilisateur.getUsername());
+        variables.put("motDePasse", motDePasseClair);
+        variables.put("role", utilisateur.getRole().name());
+        variables.put("lien", urlApplication);
+        envoyer(utilisateur.getEmail(), "Votre accès au Portail ENSI", "mail/bienvenue", variables);
+    }
+
+    private void envoyer(String destinataire, String objet, String template, Map<String, Object> variables) {
+        if (!mailActive) {
+            LOGGER.info("Envoi d'email desactive (app.mail.enabled=false) - destinataire {}", destinataire);
+            return;
+        }
+        try {
+            String contenu = htmlRenderService.render(template, variables);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            helper.setFrom(expediteur);
+            helper.setTo(destinataire);
+            helper.setSubject(objet);
+            helper.setText(contenu, true);
+            mailSender.send(message);
+            LOGGER.info("Email '{}' envoye a {}", objet, destinataire);
+        } catch (Exception ex) {
+            LOGGER.error("Echec d'envoi d'email a {} : {}", destinataire, ex.getMessage());
+        }
+    }
+}
