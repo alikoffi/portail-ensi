@@ -45,21 +45,21 @@ public class PvController {
 
     @PostMapping("/enregistrer")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public PvDto enregistrer(@Valid @RequestBody PvDto dto) {
         return pvFacade.enregistrer(dto);
     }
 
     @PutMapping("/modifier")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public PvDto modifier(@Valid @RequestBody PvDto dto) {
         return pvFacade.modifier(dto);
     }
 
     @DeleteMapping("/supprimer/{id}")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public void supprimer(@PathVariable Long id) {
         pvFacade.supprimer(id);
     }

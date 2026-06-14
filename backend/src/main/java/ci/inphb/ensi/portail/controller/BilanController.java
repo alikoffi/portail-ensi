@@ -37,28 +37,28 @@ public class BilanController {
 
     @PostMapping("/actif/enregistrer")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public RubriqueBilanDto enregistrerActif(@Valid @RequestBody RubriqueBilanDto dto) {
         return bilanFacade.enregistrerActif(dto);
     }
 
     @DeleteMapping("/actif/supprimer/{id}")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public void supprimerActif(@PathVariable Long id) {
         bilanFacade.supprimerActif(id);
     }
 
     @PostMapping("/passif/enregistrer")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public RubriqueBilanDto enregistrerPassif(@Valid @RequestBody RubriqueBilanDto dto) {
         return bilanFacade.enregistrerPassif(dto);
     }
 
     @DeleteMapping("/passif/supprimer/{id}")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public void supprimerPassif(@PathVariable Long id) {
         bilanFacade.supprimerPassif(id);
     }

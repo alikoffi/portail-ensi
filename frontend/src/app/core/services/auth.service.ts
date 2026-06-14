@@ -17,7 +17,20 @@ export class AuthService {
   private readonly _user = signal<LoginResponse | null>(this.lireUtilisateurStocke());
   readonly user = this._user.asReadonly();
   readonly estConnecte = computed(() => this._user() !== null);
-  readonly estAdmin = computed(() => this._user()?.role === 'ADMIN');
+  readonly role = computed(() => this._user()?.role ?? null);
+  readonly estAdmin = computed(() => this.role() === 'ADMIN');
+
+  /** Finances (transactions, bilan) et cotisations : ADMIN ou TRESORIER. */
+  readonly peutGererFinances = computed(() => this.role() === 'ADMIN' || this.role() === 'TRESORIER');
+
+  /** Planning : ADMIN ou SECRETAIRE. */
+  readonly peutGererPlanning = computed(() => this.role() === 'ADMIN' || this.role() === 'SECRETAIRE');
+
+  /** Procès-verbaux : ADMIN ou SECRETAIRE. */
+  readonly peutGererPv = computed(() => this.role() === 'ADMIN' || this.role() === 'SECRETAIRE');
+
+  /** Membres : ADMIN ou SECRETAIRE. */
+  readonly peutGererMembres = computed(() => this.role() === 'ADMIN' || this.role() === 'SECRETAIRE');
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${environment.apiUrl}/ws/auth/login`, credentials).pipe(

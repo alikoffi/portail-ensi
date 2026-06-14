@@ -44,21 +44,21 @@ public class CotisationController {
 
     @PostMapping("/enregistrer")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public CotisationDto enregistrer(@Valid @RequestBody CotisationDto dto) {
         return cotisationFacade.enregistrer(dto);
     }
 
     @PutMapping("/modifier")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public CotisationDto modifier(@Valid @RequestBody CotisationDto dto) {
         return cotisationFacade.modifier(dto);
     }
 
     @DeleteMapping("/supprimer/{id}")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public void supprimer(@PathVariable Long id) {
         cotisationFacade.supprimer(id);
     }

@@ -18,7 +18,7 @@ export class BilanTabComponent implements OnInit {
   private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
 
-  readonly estAdmin = this.authService.estAdmin;
+  readonly peutGerer = this.authService.peutGererFinances;
   readonly exportEnCours = signal(false);
 
   readonly bilan = signal<Bilan | null>(null);

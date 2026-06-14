@@ -16,7 +16,7 @@ export class PlanningComponent implements OnInit {
   private readonly evenementService = inject(EvenementService);
   private readonly authService = inject(AuthService);
 
-  readonly estAdmin = this.authService.estAdmin;
+  readonly peutGerer = this.authService.peutGererPlanning;
 
   readonly evenements = signal<Evenement[]>([]);
   readonly chargement = signal(true);

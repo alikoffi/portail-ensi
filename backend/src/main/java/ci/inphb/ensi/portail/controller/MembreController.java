@@ -49,21 +49,21 @@ public class MembreController {
 
     @PostMapping("/enregistrer")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public MembreDto enregistrer(@Valid @RequestBody MembreDto dto) {
         return membreFacade.enregistrer(dto);
     }
 
     @PutMapping("/modifier")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public MembreDto modifier(@Valid @RequestBody MembreDto dto) {
         return membreFacade.modifier(dto);
     }
 
     @DeleteMapping("/supprimer/{id}")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public void supprimer(@PathVariable Long id) {
         membreFacade.supprimer(id);
     }

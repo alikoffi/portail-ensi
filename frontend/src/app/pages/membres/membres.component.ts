@@ -23,7 +23,8 @@ export class MembresComponent implements OnInit, AfterViewInit {
   private readonly membreService = inject(MembreService);
   private readonly authService = inject(AuthService);
 
-  readonly estAdmin = this.authService.estAdmin;
+  readonly peutGererMembres = this.authService.peutGererMembres;
+  readonly peutGererCotisations = this.authService.peutGererFinances;
 
   readonly membres = signal<Membre[]>([]);
   readonly recouvrement = signal<Recouvrement | null>(null);

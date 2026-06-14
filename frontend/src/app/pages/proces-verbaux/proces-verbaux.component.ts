@@ -18,7 +18,7 @@ export class ProcesVerbauxComponent implements OnInit {
   private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
 
-  readonly estAdmin = this.authService.estAdmin;
+  readonly peutGerer = this.authService.peutGererPv;
   readonly exportEnCours = signal(false);
 
   readonly pvs = signal<Pv[]>([]);

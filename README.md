@@ -35,6 +35,7 @@ security · configuration · exception · enums · utils
 | **Lot 4** | Procès-verbaux (CRUD) | ✅ fait |
 | **Lot 5** | Graphiques (Chart.js) + export PDF | ✅ fait |
 | **Lot 6** | Membres + cotisations (recouvrement) | ✅ fait |
+| **Lot 7** | Rôles étendus (Trésorier/Secrétaire) + comptes | ✅ fait |
 
 ## Démarrage local
 
@@ -70,5 +71,11 @@ npm start                # http://localhost:4200
 | Login | Mot de passe | Rôle |
 |---|---|---|
 | admin | admin123 | ADMIN |
+| tresorier | tresorier123 | TRESORIER |
+| secretaire | secretaire123 | SECRETAIRE |
 | visiteur1 | visiteur123 | VIEWER |
 | visiteur2 | visiteur123 | VIEWER |
+
+Matrice des accès (écriture) : **Trésorier** → finances + cotisations ·
+**Secrétaire** → planning + procès-verbaux + membres · **Admin** → tout (dont
+gestion des comptes) · **Visiteur** → lecture seule.

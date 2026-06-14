@@ -38,7 +38,7 @@
       <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-ensi-50/50">
           <h3 class="font-bold text-ensi-700"><i class="pi pi-arrow-down-left mr-1.5"></i> Actif</h3>
-          @if (estAdmin()) {
+          @if (peutGerer()) {
             <button (click)="ouvrirAjout('actif')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-ensi-700 hover:bg-ensi-100 transition-colors">
               <i class="pi pi-plus"></i> Rubrique
             </button>
@@ -53,7 +53,7 @@
                 <span class="text-sm text-gray-700">{{ r.rubrique }}</span>
                 <div class="flex items-center gap-2 shrink-0">
                   <span class="text-sm font-semibold text-gray-800">{{ formater(r.montant) }}</span>
-                  @if (estAdmin()) {
+                  @if (peutGerer()) {
                     <button (click)="demanderSuppression('actif', r)" class="flex items-center justify-center w-7 h-7 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-600" title="Supprimer"><i class="pi pi-trash text-xs"></i></button>
                   }
                 </div>
@@ -71,7 +71,7 @@
       <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-amber-50/50">
           <h3 class="font-bold text-amber-700"><i class="pi pi-arrow-up-right mr-1.5"></i> Passif</h3>
-          @if (estAdmin()) {
+          @if (peutGerer()) {
             <button (click)="ouvrirAjout('passif')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors">
               <i class="pi pi-plus"></i> Rubrique
             </button>
@@ -86,7 +86,7 @@
                 <span class="text-sm text-gray-700">{{ r.rubrique }}</span>
                 <div class="flex items-center gap-2 shrink-0">
                   <span class="text-sm font-semibold text-gray-800">{{ formater(r.montant) }}</span>
-                  @if (estAdmin()) {
+                  @if (peutGerer()) {
                     <button (click)="demanderSuppression('passif', r)" class="flex items-center justify-center w-7 h-7 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-600" title="Supprimer"><i class="pi pi-trash text-xs"></i></button>
                   }
                 </div>

@@ -42,21 +42,21 @@ public class EvenementController {
 
     @PostMapping("/enregistrer")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public EvenementDto enregistrer(@Valid @RequestBody EvenementDto dto) {
         return evenementFacade.enregistrer(dto);
     }
 
     @PutMapping("/modifier")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public EvenementDto modifier(@Valid @RequestBody EvenementDto dto) {
         return evenementFacade.modifier(dto);
     }
 
     @DeleteMapping("/supprimer/{id}")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public void supprimer(@PathVariable Long id) {
         evenementFacade.supprimer(id);
     }

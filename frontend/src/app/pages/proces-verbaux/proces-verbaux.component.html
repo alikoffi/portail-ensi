@@ -5,7 +5,7 @@
       <h1 class="text-2xl font-bold text-gray-800">Procès-verbaux</h1>
       <p class="mt-1 text-sm text-gray-500">Archives des réunions du bureau exécutif.</p>
     </div>
-    @if (estAdmin()) {
+    @if (peutGerer()) {
       <button (click)="ouvrirCreation()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 transition-colors">
         <i class="pi pi-plus"></i> Nouveau PV
       </button>
@@ -48,7 +48,7 @@
             <div class="flex items-center justify-center w-11 h-11 rounded-xl bg-ensi-50 text-ensi-700 shrink-0">
               <i class="pi pi-file-edit text-lg"></i>
             </div>
-            @if (estAdmin()) {
+            @if (peutGerer()) {
               <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button (click)="ouvrirEdition(pv); $event.stopPropagation()" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-ensi-50 hover:text-ensi-700" title="Modifier"><i class="pi pi-pencil text-sm"></i></button>
                 <button (click)="demanderSuppression(pv); $event.stopPropagation()" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600" title="Supprimer"><i class="pi pi-trash text-sm"></i></button>
@@ -83,7 +83,7 @@
             @if (exportEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-file-pdf"></i> }
             PDF
           </button>
-          @if (estAdmin()) {
+          @if (peutGerer()) {
             <button (click)="ouvrirEdition(pv)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-ensi-700 hover:bg-ensi-50"><i class="pi pi-pencil"></i> Modifier</button>
           }
           <button (click)="fermerDetail()" class="text-gray-400 hover:text-gray-600 p-1.5"><i class="pi pi-times"></i></button>

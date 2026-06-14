@@ -1,4 +1,4 @@
-export type RoleUtilisateur = 'ADMIN' | 'VIEWER';
+export type RoleUtilisateur = 'ADMIN' | 'TRESORIER' | 'SECRETAIRE' | 'VIEWER';
 
 export interface LoginRequest {
   username: string;

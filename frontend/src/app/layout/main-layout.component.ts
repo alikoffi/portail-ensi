@@ -29,7 +29,8 @@ export class MainLayoutComponent {
     { libelle: 'Planning', icone: 'pi-calendar', route: '/planning' },
     { libelle: 'États financiers', icone: 'pi-wallet', route: '/finances' },
     { libelle: 'Membres', icone: 'pi-users', route: '/membres' },
-    { libelle: 'Procès-verbaux', icone: 'pi-file', route: '/proces-verbaux' }
+    { libelle: 'Procès-verbaux', icone: 'pi-file', route: '/proces-verbaux' },
+    { libelle: 'Comptes', icone: 'pi-shield', route: '/administration/comptes', adminSeulement: true }
   ];
 
   readonly initiales = computed(() => {

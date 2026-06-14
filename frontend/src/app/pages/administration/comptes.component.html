@@ -1,0 +1,151 @@
+<div class="max-w-5xl mx-auto space-y-6">
+  <!-- En-tête -->
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Comptes utilisateurs</h1>
+      <p class="mt-1 text-sm text-gray-500">Gestion des accès et des rôles de la plateforme.</p>
+    </div>
+    <button (click)="ouvrirCreation()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 transition-colors">
+      <i class="pi pi-user-plus"></i> Nouveau compte
+    </button>
+  </div>
+
+  @if (erreur()) {
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreur() }}</div>
+  }
+
+  <!-- Tableau -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <p-table
+      #dt
+      [value]="utilisateurs()"
+      dataKey="id"
+      [paginator]="true"
+      [rows]="10"
+      [globalFilterFields]="['username', 'label', 'role']"
+      [loading]="chargement()"
+      styleClass="p-datatable-sm"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}-{last} sur {totalRecords} comptes">
+
+      <ng-template pTemplate="caption">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-gray-700">Utilisateurs</span>
+          <span class="relative">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Rechercher…"
+              class="pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="username">Utilisateur <p-sortIcon field="username" /></th>
+          <th pSortableColumn="label">Libellé <p-sortIcon field="label" /></th>
+          <th pSortableColumn="role">Rôle <p-sortIcon field="role" /></th>
+          <th pSortableColumn="actif">Statut <p-sortIcon field="actif" /></th>
+          <th class="text-right">Action</th>
+        </tr>
+        <tr>
+          <th><p-columnFilter type="text" field="username" matchMode="contains" display="row" [showMenu]="false" [showClearButton]="false" placeholder="Filtrer…" /></th>
+          <th></th>
+          <th>
+            <p-columnFilter field="role" matchMode="equals" display="row" [showMenu]="false" [showClearButton]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <select (change)="filter($any($event.target).value)" class="w-full px-2 py-1.5 rounded-md border border-gray-300 text-xs bg-white outline-none">
+                  <option value="">Tous</option>
+                  @for (r of roles; track r) { <option [value]="r">{{ libelleRole(r) }}</option> }
+                </select>
+              </ng-template>
+            </p-columnFilter>
+          </th>
+          <th></th>
+          <th></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-u>
+        <tr>
+          <td>
+            <div class="flex items-center gap-3">
+              <span class="flex items-center justify-center w-9 h-9 rounded-full bg-ensi-600 text-white text-xs font-bold shrink-0">{{ u.username.charAt(0).toUpperCase() }}</span>
+              <span class="font-medium text-gray-800">{{ u.username }}</span>
+            </div>
+          </td>
+          <td class="text-gray-600">{{ u.label || '—' }}</td>
+          <td><span class="px-2.5 py-1 rounded-full text-[11px] font-semibold {{ couleurRole(u.role) }}">{{ libelleRole(u.role) }}</span></td>
+          <td>
+            <span class="inline-flex items-center gap-1.5 text-xs font-medium" [class.text-emerald-600]="u.actif" [class.text-gray-400]="!u.actif">
+              <span class="w-2 h-2 rounded-full" [class.bg-emerald-500]="u.actif" [class.bg-gray-300]="!u.actif"></span>
+              {{ u.actif ? 'Actif' : 'Inactif' }}
+            </span>
+          </td>
+          <td class="text-right">
+            <button (click)="basculerActif(u)"
+              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              [class.text-red-600]="u.actif" [class.hover:bg-red-50]="u.actif"
+              [class.text-emerald-600]="!u.actif" [class.hover:bg-emerald-50]="!u.actif">
+              {{ u.actif ? 'Désactiver' : 'Activer' }}
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="pi pi-users text-3xl"></i><p class="mt-2 text-sm">Aucun compte.</p></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Modal création -->
+@if (modalOuvert()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="fermerModal()">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">Nouveau compte</h2>
+        <button (click)="fermerModal()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="enregistrer()" class="p-6 space-y-4">
+        @if (erreurFormulaire()) {
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreurFormulaire() }}</div>
+        }
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur *</label>
+          <input type="text" formControlName="username" autocomplete="off" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (form.controls.username.touched && form.controls.username.invalid) { <p class="mt-1 text-xs text-red-600">Obligatoire.</p> }
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe *</label>
+          <div class="relative">
+            <input [type]="afficherMotDePasse() ? 'text' : 'password'" formControlName="password" autocomplete="new-password"
+              class="w-full px-3 py-2.5 pr-10 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            <button type="button" (click)="basculerMotDePasse()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" tabindex="-1">
+              <i class="pi" [class.pi-eye]="!afficherMotDePasse()" [class.pi-eye-slash]="afficherMotDePasse()"></i>
+            </button>
+          </div>
+          @if (form.controls.password.touched && form.controls.password.invalid) { <p class="mt-1 text-xs text-red-600">6 caractères minimum.</p> }
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Rôle *</label>
+            <select formControlName="role" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none">
+              @for (r of roles; track r) { <option [value]="r">{{ libelleRole(r) }}</option> }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Libellé</label>
+            <input type="text" formControlName="label" placeholder="Nom affiché" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" (click)="fermerModal()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="enregistrement()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
+            @if (enregistrement()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } Créer le compte
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

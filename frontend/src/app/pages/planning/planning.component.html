@@ -5,7 +5,7 @@
       <h1 class="text-2xl font-bold text-gray-800">Planning</h1>
       <p class="mt-1 text-sm text-gray-500">Évènements et agenda de la promotion.</p>
     </div>
-    @if (estAdmin()) {
+    @if (peutGerer()) {
       <button
         (click)="ouvrirCreation()"
         class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 transition-colors"
@@ -90,7 +90,7 @@
           </div>
 
           <!-- Actions admin -->
-          @if (estAdmin()) {
+          @if (peutGerer()) {
             <div class="flex items-center gap-1 shrink-0">
               <button
                 (click)="ouvrirEdition(ev)"

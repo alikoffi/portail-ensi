@@ -39,21 +39,21 @@ public class TransactionController {
 
     @PostMapping("/enregistrer")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public TransactionDto enregistrer(@Valid @RequestBody TransactionDto dto) {
         return transactionFacade.enregistrer(dto);
     }
 
     @PutMapping("/modifier")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public TransactionDto modifier(@Valid @RequestBody TransactionDto dto) {
         return transactionFacade.modifier(dto);
     }
 
     @DeleteMapping("/supprimer/{id}")
     @Logged
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TRESORIER')")
     public void supprimer(@PathVariable Long id) {
         transactionFacade.supprimer(id);
     }
