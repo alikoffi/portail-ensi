@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@/core/services/auth.service';
 import { EvenementService } from '@/core/services/evenement.service';
+import { NotificationService } from '@/core/services/notification.service';
 import { Evenement } from '@/core/models/evenement.model';
 
 @Component({
@@ -15,6 +16,7 @@ export class PlanningComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly evenementService = inject(EvenementService);
   private readonly authService = inject(AuthService);
+  private readonly notification = inject(NotificationService);
 
   readonly peutGerer = this.authService.peutGererPlanning;
 
@@ -143,10 +145,12 @@ export class PlanningComponent implements OnInit {
       ? this.evenementService.modifier(payload)
       : this.evenementService.enregistrer(payload);
 
+    const edition = this.enEdition();
     requete.subscribe({
       next: () => {
         this.enregistrement.set(false);
         this.modalOuvert.set(false);
+        this.notification.succes(edition ? 'Évènement modifié.' : 'Évènement créé.');
         this.charger();
       },
       error: () => {
@@ -175,12 +179,13 @@ export class PlanningComponent implements OnInit {
       next: () => {
         this.suppressionEnCours.set(false);
         this.evenementASupprimer.set(null);
+        this.notification.succes('Évènement supprimé.');
         this.charger();
       },
       error: () => {
         this.suppressionEnCours.set(false);
         this.evenementASupprimer.set(null);
-        this.erreur.set('La suppression a échoué.');
+        this.notification.erreur('La suppression a échoué.');
       }
     });
   }

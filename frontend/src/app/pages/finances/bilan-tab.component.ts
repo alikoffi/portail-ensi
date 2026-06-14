@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@/core/services/auth.service';
 import { BilanService } from '@/core/services/bilan.service';
 import { ExportService } from '@/core/services/export.service';
+import { NotificationService } from '@/core/services/notification.service';
 import { Bilan, RubriqueBilan, SectionBilan } from '@/core/models/bilan.model';
 
 @Component({
@@ -17,6 +18,7 @@ export class BilanTabComponent implements OnInit {
   private readonly bilanService = inject(BilanService);
   private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
+  private readonly notification = inject(NotificationService);
 
   readonly peutGerer = this.authService.peutGererFinances;
   readonly exportEnCours = signal(false);
@@ -70,10 +72,11 @@ export class BilanTabComponent implements OnInit {
       next: (blob) => {
         this.exportService.telecharger(blob, 'bilan.pdf');
         this.exportEnCours.set(false);
+        this.notification.succes('Export PDF généré.');
       },
       error: () => {
         this.exportEnCours.set(false);
-        this.erreur.set("L'export PDF a échoué.");
+        this.notification.erreur("L'export PDF a échoué.");
       }
     });
   }
@@ -104,6 +107,7 @@ export class BilanTabComponent implements OnInit {
       next: () => {
         this.enregistrement.set(false);
         this.modalOuvert.set(false);
+        this.notification.succes('Rubrique ajoutée.');
         this.charger();
       },
       error: () => {
@@ -131,12 +135,13 @@ export class BilanTabComponent implements OnInit {
       next: () => {
         this.suppressionEnCours.set(false);
         this.aSupprimer.set(null);
+        this.notification.succes('Rubrique supprimée.');
         this.charger();
       },
       error: () => {
         this.suppressionEnCours.set(false);
         this.aSupprimer.set(null);
-        this.erreur.set('La suppression a échoué.');
+        this.notification.erreur('La suppression a échoué.');
       }
     });
   }

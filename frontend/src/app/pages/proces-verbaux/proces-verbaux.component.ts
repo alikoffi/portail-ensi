@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@/core/services/auth.service';
 import { PvService } from '@/core/services/pv.service';
 import { ExportService } from '@/core/services/export.service';
+import { NotificationService } from '@/core/services/notification.service';
 import { Pv } from '@/core/models/pv.model';
 
 @Component({
@@ -17,6 +18,7 @@ export class ProcesVerbauxComponent implements OnInit {
   private readonly pvService = inject(PvService);
   private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
+  private readonly notification = inject(NotificationService);
 
   readonly peutGerer = this.authService.peutGererPv;
   readonly exportEnCours = signal(false);
@@ -95,10 +97,11 @@ export class ProcesVerbauxComponent implements OnInit {
       next: (blob) => {
         this.exportService.telecharger(blob, `proces-verbal-${pv.id}.pdf`);
         this.exportEnCours.set(false);
+        this.notification.succes('Export PDF généré.');
       },
       error: () => {
         this.exportEnCours.set(false);
-        this.erreur.set("L'export PDF a échoué.");
+        this.notification.erreur("L'export PDF a échoué.");
       }
     });
   }
@@ -152,11 +155,13 @@ export class ProcesVerbauxComponent implements OnInit {
       signataires: v.signataires || null
     };
 
-    const requete = this.enEdition() ? this.pvService.modifier(payload) : this.pvService.enregistrer(payload);
+    const edition = this.enEdition();
+    const requete = edition ? this.pvService.modifier(payload) : this.pvService.enregistrer(payload);
     requete.subscribe({
       next: () => {
         this.enregistrement.set(false);
         this.modalFormulaire.set(false);
+        this.notification.succes(edition ? 'Procès-verbal modifié.' : 'Procès-verbal créé.');
         this.charger();
       },
       error: () => {
@@ -186,12 +191,13 @@ export class ProcesVerbauxComponent implements OnInit {
       next: () => {
         this.suppressionEnCours.set(false);
         this.aSupprimer.set(null);
+        this.notification.succes('Procès-verbal supprimé.');
         this.charger();
       },
       error: () => {
         this.suppressionEnCours.set(false);
         this.aSupprimer.set(null);
-        this.erreur.set('La suppression a échoué.');
+        this.notification.erreur('La suppression a échoué.');
       }
     });
   }

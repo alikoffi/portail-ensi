@@ -5,6 +5,7 @@ import { TableModule } from 'primeng/table';
 import { AuthService } from '@/core/services/auth.service';
 import { TransactionService } from '@/core/services/transaction.service';
 import { ExportService } from '@/core/services/export.service';
+import { NotificationService } from '@/core/services/notification.service';
 import { Transaction, TypeTransaction } from '@/core/models/transaction.model';
 
 @Component({
@@ -18,6 +19,7 @@ export class TransactionsTabComponent implements OnInit {
   private readonly transactionService = inject(TransactionService);
   private readonly exportService = inject(ExportService);
   private readonly authService = inject(AuthService);
+  private readonly notification = inject(NotificationService);
 
   readonly peutGerer = this.authService.peutGererFinances;
   readonly exportEnCours = signal(false);
@@ -81,10 +83,11 @@ export class TransactionsTabComponent implements OnInit {
       next: (blob) => {
         this.exportService.telecharger(blob, 'journal-transactions.pdf');
         this.exportEnCours.set(false);
+        this.notification.succes('Export PDF généré.');
       },
       error: () => {
         this.exportEnCours.set(false);
-        this.erreur.set("L'export PDF a échoué.");
+        this.notification.erreur("L'export PDF a échoué.");
       }
     });
   }
@@ -134,14 +137,14 @@ export class TransactionsTabComponent implements OnInit {
       note: v.note || null
     };
 
-    const requete = this.enEdition()
-      ? this.transactionService.modifier(payload)
-      : this.transactionService.enregistrer(payload);
+    const edition = this.enEdition();
+    const requete = edition ? this.transactionService.modifier(payload) : this.transactionService.enregistrer(payload);
 
     requete.subscribe({
       next: () => {
         this.enregistrement.set(false);
         this.modalOuvert.set(false);
+        this.notification.succes(edition ? 'Transaction modifiée.' : 'Transaction enregistrée.');
         this.charger();
       },
       error: () => {
@@ -169,12 +172,13 @@ export class TransactionsTabComponent implements OnInit {
       next: () => {
         this.suppressionEnCours.set(false);
         this.aSupprimer.set(null);
+        this.notification.succes('Transaction supprimée.');
         this.charger();
       },
       error: () => {
         this.suppressionEnCours.set(false);
         this.aSupprimer.set(null);
-        this.erreur.set('La suppression a échoué.');
+        this.notification.erreur('La suppression a échoué.');
       }
     });
   }

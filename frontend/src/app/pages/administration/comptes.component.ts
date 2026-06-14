@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { UtilisateurService } from '@/core/services/utilisateur.service';
+import { NotificationService } from '@/core/services/notification.service';
 import { RoleUtilisateur, Utilisateur } from '@/core/models/utilisateur.model';
 
 const LIBELLES_ROLE: Record<RoleUtilisateur, string> = {
@@ -21,6 +22,7 @@ const LIBELLES_ROLE: Record<RoleUtilisateur, string> = {
 export class ComptesComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly utilisateurService = inject(UtilisateurService);
+  private readonly notification = inject(NotificationService);
 
   readonly utilisateurs = signal<Utilisateur[]>([]);
   readonly chargement = signal(true);
@@ -103,6 +105,7 @@ export class ComptesComponent implements OnInit {
       next: () => {
         this.enregistrement.set(false);
         this.modalOuvert.set(false);
+        this.notification.succes('Compte créé.');
         this.charger();
       },
       error: (err) => {
@@ -114,8 +117,11 @@ export class ComptesComponent implements OnInit {
 
   basculerActif(u: Utilisateur): void {
     this.utilisateurService.basculerActif(u.id).subscribe({
-      next: () => this.charger(),
-      error: () => this.erreur.set('La mise à jour a échoué.')
+      next: (maj) => {
+        this.notification.succes(maj.actif ? 'Compte activé.' : 'Compte désactivé.');
+        this.charger();
+      },
+      error: () => this.notification.erreur('La mise à jour a échoué.')
     });
   }
 }

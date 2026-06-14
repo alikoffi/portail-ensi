@@ -7,6 +7,7 @@ import { TableModule } from 'primeng/table';
 import { DatePickerModule } from 'primeng/datepicker';
 import { AuthService } from '@/core/services/auth.service';
 import { MembreService } from '@/core/services/membre.service';
+import { NotificationService } from '@/core/services/notification.service';
 import { LigneMembre, Membre, Recouvrement, StatistiqueCotisation, StatutMembre } from '@/core/models/membre.model';
 import { Cotisation } from '@/core/models/membre.model';
 
@@ -22,6 +23,7 @@ export class MembresComponent implements OnInit, AfterViewInit {
   private readonly fb = inject(FormBuilder);
   private readonly membreService = inject(MembreService);
   private readonly authService = inject(AuthService);
+  private readonly notification = inject(NotificationService);
 
   readonly peutGererMembres = this.authService.peutGererMembres;
   readonly peutGererCotisations = this.authService.peutGererFinances;
@@ -299,11 +301,13 @@ export class MembresComponent implements OnInit, AfterViewInit {
       statut: v.statut,
       dateAdhesion: v.dateAdhesion || null
     };
-    const req = this.enEditionMembre() ? this.membreService.modifier(payload) : this.membreService.enregistrer(payload);
+    const edition = this.enEditionMembre();
+    const req = edition ? this.membreService.modifier(payload) : this.membreService.enregistrer(payload);
     req.subscribe({
       next: () => {
         this.enregistrementMembre.set(false);
         this.modalMembre.set(false);
+        this.notification.succes(edition ? 'Membre modifié.' : 'Membre ajouté.');
         this.charger();
       },
       error: () => {
@@ -344,6 +348,7 @@ export class MembresComponent implements OnInit, AfterViewInit {
       next: () => {
         this.enregistrementCotisation.set(false);
         this.modalCotisation.set(false);
+        this.notification.succes('Cotisation enregistrée.');
         this.chargerCotisations(membre.id!);
         this.rafraichirRecouvrement();
       },
@@ -382,12 +387,13 @@ export class MembresComponent implements OnInit, AfterViewInit {
         next: () => {
           this.suppressionEnCours.set(false);
           this.membreASupprimer.set(null);
+          this.notification.succes('Membre supprimé.');
           this.charger();
         },
         error: () => {
           this.suppressionEnCours.set(false);
           this.membreASupprimer.set(null);
-          this.erreur.set('La suppression a échoué.');
+          this.notification.erreur('La suppression a échoué.');
         }
       });
     } else if (cotisation?.id) {
@@ -396,12 +402,14 @@ export class MembresComponent implements OnInit, AfterViewInit {
         next: () => {
           this.suppressionEnCours.set(false);
           this.cotisationASupprimer.set(null);
+          this.notification.succes('Cotisation supprimée.');
           this.chargerCotisations(cotisation.membreId);
           this.rafraichirRecouvrement();
         },
         error: () => {
           this.suppressionEnCours.set(false);
           this.cotisationASupprimer.set(null);
+          this.notification.erreur('La suppression a échoué.');
         }
       });
     }
