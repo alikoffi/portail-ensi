@@ -7,10 +7,10 @@ import { TableModule } from 'primeng/table';
 import { DatePickerModule } from 'primeng/datepicker';
 import { AuthService } from '@/core/services/auth.service';
 import { MembreService } from '@/core/services/membre.service';
+import { AppelCotisationService } from '@/core/services/appel-cotisation.service';
 import { NotificationService } from '@/core/services/notification.service';
 import { ParametrageService } from '@/core/services/parametrage.service';
 import { LigneMembre, Membre, Recouvrement, StatistiqueCotisation, StatutMembre } from '@/core/models/membre.model';
-import { Cotisation } from '@/core/models/membre.model';
 
 Chart.register(...registerables);
 
@@ -23,12 +23,12 @@ Chart.register(...registerables);
 export class MembresComponent implements OnInit, AfterViewInit {
   private readonly fb = inject(FormBuilder);
   private readonly membreService = inject(MembreService);
+  private readonly appelService = inject(AppelCotisationService);
   private readonly authService = inject(AuthService);
   private readonly notification = inject(NotificationService);
   private readonly parametrageService = inject(ParametrageService);
 
   readonly peutGererMembres = this.authService.peutGererMembres;
-  readonly peutGererCotisations = this.authService.peutGererFinances;
   readonly specialites = signal<string[]>([]);
 
   readonly membres = signal<Membre[]>([]);
@@ -45,8 +45,6 @@ export class MembresComponent implements OnInit, AfterViewInit {
 
   // Drawer détail
   readonly membreSelectionne = signal<Membre | null>(null);
-  readonly cotisations = signal<Cotisation[]>([]);
-  readonly chargementCotisations = signal(false);
 
   // Modal membre
   readonly modalMembre = signal(false);
@@ -54,14 +52,8 @@ export class MembresComponent implements OnInit, AfterViewInit {
   readonly enregistrementMembre = signal(false);
   readonly erreurMembre = signal<string | null>(null);
 
-  // Modal cotisation
-  readonly modalCotisation = signal(false);
-  readonly enregistrementCotisation = signal(false);
-  readonly erreurCotisation = signal<string | null>(null);
-
-  // Suppressions
+  // Suppression
   readonly membreASupprimer = signal<Membre | null>(null);
-  readonly cotisationASupprimer = signal<Cotisation | null>(null);
   readonly suppressionEnCours = signal(false);
 
   readonly formMembre = this.fb.nonNullable.group({
@@ -74,13 +66,6 @@ export class MembresComponent implements OnInit, AfterViewInit {
     specialite: [''],
     statut: ['ACTIF' as StatutMembre, Validators.required],
     dateAdhesion: ['']
-  });
-
-  readonly formCotisation = this.fb.nonNullable.group({
-    periode: ['', Validators.required],
-    montant: this.fb.control<number | null>(null, [Validators.required, Validators.min(0.01)]),
-    datePaiement: ['', Validators.required],
-    note: ['']
   });
 
   readonly totalParMembre = computed(() => {
@@ -100,9 +85,9 @@ export class MembresComponent implements OnInit, AfterViewInit {
   });
 
   readonly retardParMembre = computed(() => {
-    const map = new Map<number, number>();
+    const map = new Map<number, { appels: number; reste: number }>();
     for (const r of this.recouvrement()?.membres ?? []) {
-      map.set(r.id, r.moisEnRetard ?? 0);
+      map.set(r.id, { appels: r.appelsEnRetard ?? 0, reste: r.resteAPayer ?? 0 });
     }
     return map;
   });
@@ -121,7 +106,8 @@ export class MembresComponent implements OnInit, AfterViewInit {
       statut: m.statut,
       totalCotise: totals.get(m.id!) ?? 0,
       dernierPaiement: derniers.get(m.id!) ?? null,
-      moisEnRetard: retards.get(m.id!) ?? 0
+      appelsEnRetard: retards.get(m.id!)?.appels ?? 0,
+      resteAPayer: retards.get(m.id!)?.reste ?? 0
     }));
   });
 
@@ -158,7 +144,7 @@ export class MembresComponent implements OnInit, AfterViewInit {
   }
 
   chargerStatistiques(annee?: number): void {
-    this.membreService.statistiquesCotisations(annee).subscribe({
+    this.appelService.statistiques(annee).subscribe({
       next: (s) => {
         this.statsCotisations.set(s);
         this.anneeSelectionnee.set(s.annee);
@@ -238,20 +224,12 @@ export class MembresComponent implements OnInit, AfterViewInit {
     return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
   }
 
-  /** "2026-05" -> "mai 2026". */
-  formaterPeriode(periode: string | undefined): string {
-    if (!periode) {
-      return '';
-    }
-    const [annee, mois] = periode.split('-').map(Number);
-    if (!annee || !mois) {
-      return periode;
-    }
-    return new Date(annee, mois - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-  }
-
   totalMembre(id: number | undefined): number {
     return id ? this.totalParMembre().get(id) ?? 0 : 0;
+  }
+
+  retardMembre(id: number | undefined): { appels: number; reste: number } {
+    return id ? this.retardParMembre().get(id) ?? { appels: 0, reste: 0 } : { appels: 0, reste: 0 };
   }
 
   initiales(m: Membre): string {
@@ -261,23 +239,10 @@ export class MembresComponent implements OnInit, AfterViewInit {
   // ---------- Drawer ----------
   ouvrirDetail(m: Membre): void {
     this.membreSelectionne.set(m);
-    this.chargerCotisations(m.id!);
   }
 
   fermerDetail(): void {
     this.membreSelectionne.set(null);
-    this.cotisations.set([]);
-  }
-
-  private chargerCotisations(membreId: number): void {
-    this.chargementCotisations.set(true);
-    this.membreService.cotisationsParMembre(membreId).subscribe({
-      next: (cs) => {
-        this.cotisations.set(cs);
-        this.chargementCotisations.set(false);
-      },
-      error: () => this.chargementCotisations.set(false)
-    });
   }
 
   // ---------- Membre form ----------
@@ -345,101 +310,34 @@ export class MembresComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // ---------- Cotisation form ----------
-  ouvrirAjoutCotisation(): void {
-    this.erreurCotisation.set(null);
-    this.formCotisation.reset({ periode: '', montant: null, datePaiement: '', note: '' });
-    this.modalCotisation.set(true);
-  }
-
-  fermerModalCotisation(): void {
-    this.modalCotisation.set(false);
-  }
-
-  enregistrerCotisation(): void {
-    const membre = this.membreSelectionne();
-    if (!membre?.id || this.formCotisation.invalid) {
-      this.formCotisation.markAllAsTouched();
-      return;
-    }
-    this.enregistrementCotisation.set(true);
-    this.erreurCotisation.set(null);
-    const v = this.formCotisation.getRawValue();
-    const payload: Cotisation = {
-      membreId: membre.id,
-      periode: v.periode,
-      montant: v.montant as number,
-      datePaiement: v.datePaiement,
-      note: v.note || null
-    };
-    this.membreService.enregistrerCotisation(payload).subscribe({
-      next: () => {
-        this.enregistrementCotisation.set(false);
-        this.modalCotisation.set(false);
-        this.notification.succes('Cotisation enregistrée.');
-        this.chargerCotisations(membre.id!);
-        this.rafraichirRecouvrement();
-      },
-      error: () => {
-        this.enregistrementCotisation.set(false);
-        this.erreurCotisation.set("L'enregistrement a échoué.");
-      }
-    });
-  }
-
-  private rafraichirRecouvrement(): void {
-    this.membreService.recouvrement().subscribe({ next: (r) => this.recouvrement.set(r) });
-  }
-
-  // ---------- Suppressions ----------
+  // ---------- Suppression ----------
   demanderSuppressionMembre(m: Membre): void {
     this.membreSelectionne.set(null);
     this.membreASupprimer.set(m);
   }
 
-  demanderSuppressionCotisation(c: Cotisation): void {
-    this.cotisationASupprimer.set(c);
-  }
-
   annulerSuppression(): void {
     this.membreASupprimer.set(null);
-    this.cotisationASupprimer.set(null);
   }
 
   confirmerSuppression(): void {
     const membre = this.membreASupprimer();
-    const cotisation = this.cotisationASupprimer();
-    if (membre?.id) {
-      this.suppressionEnCours.set(true);
-      this.membreService.supprimer(membre.id).subscribe({
-        next: () => {
-          this.suppressionEnCours.set(false);
-          this.membreASupprimer.set(null);
-          this.notification.succes('Membre supprimé.');
-          this.charger();
-        },
-        error: () => {
-          this.suppressionEnCours.set(false);
-          this.membreASupprimer.set(null);
-          this.notification.erreur('La suppression a échoué.');
-        }
-      });
-    } else if (cotisation?.id) {
-      this.suppressionEnCours.set(true);
-      this.membreService.supprimerCotisation(cotisation.id).subscribe({
-        next: () => {
-          this.suppressionEnCours.set(false);
-          this.cotisationASupprimer.set(null);
-          this.notification.succes('Cotisation supprimée.');
-          this.chargerCotisations(cotisation.membreId);
-          this.rafraichirRecouvrement();
-        },
-        error: () => {
-          this.suppressionEnCours.set(false);
-          this.cotisationASupprimer.set(null);
-          this.notification.erreur('La suppression a échoué.');
-        }
-      });
+    if (!membre?.id) {
+      return;
     }
+    this.suppressionEnCours.set(true);
+    this.membreService.supprimer(membre.id).subscribe({
+      next: () => {
+        this.suppressionEnCours.set(false);
+        this.membreASupprimer.set(null);
+        this.notification.succes('Membre supprimé.');
+        this.charger();
+      },
+      error: () => {
+        this.suppressionEnCours.set(false);
+        this.membreASupprimer.set(null);
+        this.notification.erreur('La suppression a échoué.');
+      }
+    });
   }
 }

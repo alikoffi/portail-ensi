@@ -1,0 +1,213 @@
+<div class="max-w-6xl mx-auto space-y-6">
+  <!-- En-tête -->
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Appels de cotisation</h1>
+      <p class="mt-1 text-sm text-gray-500">Lancez un appel (les membres sont notifiés), puis saisissez les paiements.</p>
+    </div>
+    @if (peutGerer()) {
+      <button (click)="ouvrirCreationAppel()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 transition-colors">
+        <i class="pi pi-plus"></i> Nouvel appel
+      </button>
+    }
+  </div>
+
+  @if (erreur()) {
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreur() }}</div>
+  }
+
+  @if (chargement()) {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (i of [1,2,3]; track i) { <div class="h-44 rounded-xl bg-gray-100 animate-pulse"></div> }
+    </div>
+  } @else if (appels().length === 0) {
+    <div class="text-center py-16 text-gray-400"><i class="pi pi-megaphone text-4xl"></i><p class="mt-3 text-sm">Aucun appel de cotisation.</p></div>
+  } @else {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (a of appels(); track a.id) {
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-ensi-200 transition-all cursor-pointer" (click)="ouvrirDetail(a)">
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="font-semibold text-gray-800 line-clamp-2">{{ a.libelle }}</h3>
+            @if (a.echeanceDepassee) {
+              <span class="px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-[10px] font-medium shrink-0">Échéance passée</span>
+            } @else {
+              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-medium shrink-0">En cours</span>
+            }
+          </div>
+          <div class="mt-2 text-xs text-gray-500 flex items-center gap-3 flex-wrap">
+            <span><i class="pi pi-money-bill text-[10px]"></i> {{ formater(a.montantAttendu) }} / membre</span>
+            <span><i class="pi pi-calendar text-[10px]"></i> {{ a.dateButoir | date: 'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="mt-4">
+            <div class="flex items-center justify-between text-xs mb-1">
+              <span class="text-gray-500">Collecté</span>
+              <span class="font-semibold text-ensi-700">{{ formater(a.totalCollecte) }}</span>
+            </div>
+            <div class="h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div class="h-full bg-ensi-500" [style.width.%]="progression(a)"></div>
+            </div>
+            <div class="mt-1 text-[11px] text-gray-400">{{ a.nombrePayeurs }} contributeur(s)</div>
+          </div>
+          @if (peutGerer()) {
+            <div class="mt-4 flex items-center justify-end gap-1" (click)="$event.stopPropagation()">
+              <button (click)="ouvrirEditionAppel(a)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-ensi-50 hover:text-ensi-700" title="Modifier"><i class="pi pi-pencil text-sm"></i></button>
+              <button (click)="demanderSuppressionAppel(a)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600" title="Supprimer"><i class="pi pi-trash text-sm"></i></button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- ============ Drawer détail appel ============ -->
+@if (appelSelectionne(); as a) {
+  <div class="fixed inset-0 z-50 flex justify-end bg-black/40" (click)="fermerDetail()">
+    <div class="w-full max-w-2xl h-full bg-white shadow-xl overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+        <div>
+          <h2 class="font-bold text-gray-800">{{ a.libelle }}</h2>
+          <div class="text-xs text-gray-500 mt-0.5">{{ formater(a.montantAttendu) }} / membre · échéance {{ a.dateButoir | date: 'dd/MM/yyyy' }}</div>
+        </div>
+        <button (click)="fermerDetail()" class="text-gray-400 hover:text-gray-600 p-1.5"><i class="pi pi-times"></i></button>
+      </div>
+
+      <div class="p-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <p-table [value]="lignes()" dataKey="membreId" [paginator]="lignes().length > 15" [rows]="15" [loading]="chargementDetail()" styleClass="p-datatable-sm"
+            [globalFilterFields]="['membreNom']">
+            <ng-template pTemplate="caption">
+              <span class="text-sm font-semibold text-gray-700">Membres ({{ lignes().length }})</span>
+            </ng-template>
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="membreNom">Membre <p-sortIcon field="membreNom" /></th>
+                <th pSortableColumn="montantPaye" class="text-right">Payé <p-sortIcon field="montantPaye" /></th>
+                <th pSortableColumn="reste" class="text-right">Reste <p-sortIcon field="reste" /></th>
+                <th>Statut</th>
+                @if (peutGerer()) { <th class="w-20"></th> }
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-l>
+              <tr>
+                <td class="font-medium text-gray-800">{{ l.membreNom }}</td>
+                <td class="text-right">{{ formater(l.montantPaye) }}</td>
+                <td class="text-right" [class.text-red-600]="l.reste > 0" [class.text-gray-400]="l.reste === 0">{{ formater(l.reste) }}</td>
+                <td>
+                  @if (l.aJour) {
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium"><i class="pi pi-check-circle text-[10px]"></i> À jour</span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[11px] font-medium"><i class="pi pi-clock text-[10px]"></i> Partiel</span>
+                  }
+                </td>
+                @if (peutGerer()) {
+                  <td>
+                    <div class="flex items-center gap-1 justify-end">
+                      <button (click)="ouvrirSaisiePaiement(l)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-ensi-50 hover:text-ensi-700" title="Saisir / modifier"><i class="pi pi-pencil text-sm"></i></button>
+                      @if (l.paiementId) {
+                        <button (click)="supprimerPaiement(l)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600" title="Supprimer le paiement"><i class="pi pi-trash text-sm"></i></button>
+                      }
+                    </div>
+                  </td>
+                }
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============ Modal appel ============ -->
+@if (modalAppel()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="fermerModalAppel()">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">{{ enEditionAppel() ? "Modifier l'appel" : 'Nouvel appel de cotisation' }}</h2>
+        <button (click)="fermerModalAppel()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+      </div>
+      <form [formGroup]="formAppel" (ngSubmit)="enregistrerAppel()" class="p-6 space-y-4">
+        @if (erreurAppel()) { <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-700 text-sm"><i class="pi pi-exclamation-circle"></i> {{ erreurAppel() }}</div> }
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Libellé *</label>
+          <input type="text" formControlName="libelle" placeholder="Cotisation mensuelle - juin" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (formAppel.controls.libelle.touched && formAppel.controls.libelle.invalid) { <p class="mt-1 text-xs text-red-600">Obligatoire.</p> }
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Montant attendu *</label>
+            <input type="number" formControlName="montantAttendu" min="0" step="0.01" placeholder="5000" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (formAppel.controls.montantAttendu.touched && formAppel.controls.montantAttendu.invalid) { <p class="mt-1 text-xs text-red-600">Montant positif requis.</p> }
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date butoir *</label>
+            <input type="date" formControlName="dateButoir" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+            @if (formAppel.controls.dateButoir.touched && formAppel.controls.dateButoir.invalid) { <p class="mt-1 text-xs text-red-600">Requise.</p> }
+          </div>
+        </div>
+        @if (!enEditionAppel()) {
+          <p class="text-xs text-gray-400"><i class="pi pi-info-circle"></i> À la création, un email est envoyé à tous les membres actifs.</p>
+        }
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" (click)="fermerModalAppel()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="enregistrementAppel()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
+            @if (enregistrementAppel()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ============ Modal paiement ============ -->
+@if (modalPaiement(); as ouvert) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40" (click)="fermerModalPaiement()">
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">Paiement — {{ ligneCourante()?.membreNom }}</h2>
+        <button (click)="fermerModalPaiement()" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+      </div>
+      <form [formGroup]="formPaiement" (ngSubmit)="enregistrerPaiement()" class="p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Montant payé (FCFA) *</label>
+          <input type="number" formControlName="montant" min="0" step="0.01" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          @if (formPaiement.controls.montant.touched && formPaiement.controls.montant.invalid) { <p class="mt-1 text-xs text-red-600">Montant positif requis.</p> }
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <input type="date" formControlName="datePaiement" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+            <input type="text" formControlName="note" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" (click)="fermerModalPaiement()" class="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="enregistrementPaiement()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ensi-600 text-white text-sm font-semibold hover:bg-ensi-700 disabled:opacity-60">
+            @if (enregistrementPaiement()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> } Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ============ Suppression appel ============ -->
+@if (appelASupprimer(); as a) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" (click)="annulerSuppression()">
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-600 mx-auto"><i class="pi pi-exclamation-triangle text-xl"></i></div>
+      <h2 class="mt-4 text-center font-bold text-gray-800">Supprimer l'appel ?</h2>
+      <p class="mt-1 text-center text-sm text-gray-500">« {{ a.libelle }} » et tous ses paiements seront supprimés.</p>
+      <div class="mt-6 flex items-center gap-3">
+        <button (click)="annulerSuppression()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+        <button (click)="confirmerSuppressionAppel()" [disabled]="suppressionEnCours()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60">
+          @if (suppressionEnCours()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-trash"></i> } Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -12,16 +12,6 @@ export interface Membre {
   dateAdhesion?: string | null;
 }
 
-export interface Cotisation {
-  id?: number;
-  membreId: number;
-  membreNom?: string;
-  periode: string;
-  montant: number;
-  datePaiement: string;
-  note?: string | null;
-}
-
 export interface MembreRecouvrement {
   id: number;
   nom: string;
@@ -30,7 +20,8 @@ export interface MembreRecouvrement {
   totalCotise: number;
   nombrePaiements: number;
   dernierPaiement?: string | null;
-  moisEnRetard: number;
+  appelsEnRetard: number;
+  resteAPayer: number;
 }
 
 /** Ligne aplatie pour le tableau des membres (tri/filtre PrimeNG). */
@@ -43,7 +34,8 @@ export interface LigneMembre {
   statut: StatutMembre;
   totalCotise: number;
   dernierPaiement: string | null;
-  moisEnRetard: number;
+  appelsEnRetard: number;
+  resteAPayer: number;
 }
 
 export interface Recouvrement {

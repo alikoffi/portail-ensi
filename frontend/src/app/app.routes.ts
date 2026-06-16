@@ -38,6 +38,10 @@ export const routes: Routes = [
         loadComponent: () => import('@/pages/membres/membres.component').then((m) => m.MembresComponent)
       },
       {
+        path: 'cotisations',
+        loadComponent: () => import('@/pages/cotisations/cotisations.component').then((m) => m.CotisationsComponent)
+      },
+      {
         path: 'administration/comptes',
         canActivate: [adminGuard],
         loadComponent: () => import('@/pages/administration/comptes.component').then((m) => m.ComptesComponent)
