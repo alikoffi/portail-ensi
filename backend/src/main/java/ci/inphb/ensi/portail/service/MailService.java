@@ -2,43 +2,38 @@ package ci.inphb.ensi.portail.service;
 
 import ci.inphb.ensi.portail.domain.Utilisateur;
 import ci.inphb.ensi.portail.presentation.dto.EvenementDto;
-import jakarta.mail.internet.MimeMessage;
+import ci.inphb.ensi.portail.service.email.EmailSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Envoi d'emails (HTML via templates Thymeleaf), de maniere asynchrone.
+ * Le transport (SMTP / Brevo) est fourni par {@link EmailSender}.
  */
 @Service
 public class MailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MailService.class);
 
-    private final JavaMailSender mailSender;
+    private final EmailSender emailSender;
     private final HtmlRenderService htmlRenderService;
 
     @Value("${app.mail.enabled:false}")
     private boolean mailActive;
 
-    @Value("${app.mail.from:no-reply@ensi.ci}")
-    private String expediteur;
-
     @Value("${app.base-url:http://localhost:4200}")
     private String urlApplication;
 
-    public MailService(JavaMailSender mailSender, HtmlRenderService htmlRenderService) {
-        this.mailSender = mailSender;
+    public MailService(EmailSender emailSender, HtmlRenderService htmlRenderService) {
+        this.emailSender = emailSender;
         this.htmlRenderService = htmlRenderService;
     }
 
@@ -82,13 +77,7 @@ public class MailService {
         }
         try {
             String contenu = htmlRenderService.render(template, variables);
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
-            helper.setFrom(expediteur);
-            helper.setTo(destinataire);
-            helper.setSubject(objet);
-            helper.setText(contenu, true);
-            mailSender.send(message);
+            emailSender.envoyer(destinataire, objet, contenu);
             LOGGER.info("Email '{}' envoye a {}", objet, destinataire);
         } catch (Exception ex) {
             LOGGER.error("Echec d'envoi d'email a {} : {}", destinataire, ex.getMessage());
