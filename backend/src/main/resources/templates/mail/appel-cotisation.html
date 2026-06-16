@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+</head>
+<body style="margin:0; padding:0; background:#f6f8f7; font-family:Arial,Helvetica,sans-serif; color:#1f2937;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f8f7; padding:24px 0;">
+    <tr>
+        <td align="center">
+            <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #eef2f0;">
+                <tr>
+                    <td style="background:#0b5d3b; padding:24px 28px;">
+                        <div style="color:#ffffff; font-size:20px; font-weight:bold;">Portail ENSI</div>
+                        <div style="color:#c9e7d7; font-size:12px;">Appel de cotisation</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:28px;">
+                        <p style="font-size:15px; margin:0 0 14px;">Bonjour <strong th:text="${label}">Membre</strong>,</p>
+                        <p style="font-size:14px; line-height:1.6; color:#374151; margin:0 0 18px;">
+                            Un nouvel appel de cotisation a &#233;t&#233; lanc&#233; pour la promotion :
+                        </p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7faf8; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:20px;">
+                            <tr><td style="padding:14px 18px; font-size:14px;">
+                                <div style="margin-bottom:6px;"><span style="color:#6b7280;">Objet :</span> <strong th:text="${libelle}">Cotisation</strong></div>
+                                <div style="margin-bottom:6px;"><span style="color:#6b7280;">Montant attendu :</span> <strong th:text="${#numbers.formatInteger(montant, 1, 'WHITESPACE')} + ' FCFA'">5 000 FCFA</strong></div>
+                                <div><span style="color:#6b7280;">Date limite :</span> <strong th:text="${#temporals.format(dateButoir, 'dd/MM/yyyy')}">31/12/2026</strong></div>
+                            </td></tr>
+                        </table>
+
+                        <p style="font-size:13px; line-height:1.6; color:#6b7280; margin:0 0 18px;">
+                            Merci de vous rapprocher du tr&#233;sorier pour vous acquitter de votre cotisation avant la date limite.
+                        </p>
+
+                        <div style="text-align:center; margin:8px 0;">
+                            <a th:href="${lien}"
+                               style="display:inline-block; background:#0b5d3b; color:#ffffff; text-decoration:none; font-weight:bold; font-size:14px; padding:11px 22px; border-radius:8px;">
+                                Ouvrir le portail
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:16px 28px; border-top:1px solid #eef2f0; font-size:11px; color:#9ca3af;">
+                        Portail ENSI &#183; INPHB Yamoussoukro &#183; Email automatique, merci de ne pas r&#233;pondre.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -6,7 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Ligne de recouvrement : un membre et le cumul de ses cotisations.
+ * Ligne de recouvrement : un membre, le cumul de ses paiements et son retard
+ * (appels echus non soldes + reste a payer).
  */
 public class MembreRecouvrementDto {
 
@@ -17,10 +18,11 @@ public class MembreRecouvrementDto {
     private BigDecimal totalCotise;
     private long nombrePaiements;
     private LocalDate dernierPaiement;
-    private int moisEnRetard;
+    private int appelsEnRetard;
+    private BigDecimal resteAPayer;
 
     public MembreRecouvrementDto(Membre membre, BigDecimal totalCotise, long nombrePaiements,
-                                 LocalDate dernierPaiement, int moisEnRetard) {
+                                 LocalDate dernierPaiement, int appelsEnRetard, BigDecimal resteAPayer) {
         this.id = membre.getId();
         this.nom = membre.getNom();
         this.prenoms = membre.getPrenoms();
@@ -28,7 +30,8 @@ public class MembreRecouvrementDto {
         this.totalCotise = totalCotise;
         this.nombrePaiements = nombrePaiements;
         this.dernierPaiement = dernierPaiement;
-        this.moisEnRetard = moisEnRetard;
+        this.appelsEnRetard = appelsEnRetard;
+        this.resteAPayer = resteAPayer;
     }
 
     public Long getId() {
@@ -59,7 +62,11 @@ public class MembreRecouvrementDto {
         return dernierPaiement;
     }
 
-    public int getMoisEnRetard() {
-        return moisEnRetard;
+    public int getAppelsEnRetard() {
+        return appelsEnRetard;
+    }
+
+    public BigDecimal getResteAPayer() {
+        return resteAPayer;
     }
 }

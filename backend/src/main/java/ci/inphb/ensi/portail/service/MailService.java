@@ -1,5 +1,7 @@
 package ci.inphb.ensi.portail.service;
 
+import ci.inphb.ensi.portail.domain.AppelCotisation;
+import ci.inphb.ensi.portail.domain.Membre;
 import ci.inphb.ensi.portail.domain.Utilisateur;
 import ci.inphb.ensi.portail.presentation.dto.EvenementDto;
 import ci.inphb.ensi.portail.service.email.EmailSender;
@@ -68,6 +70,24 @@ public class MailService {
         variables.put("membresEnRetard", membresEnRetard);
         variables.put("lien", urlApplication);
         envoyer(destinataire.getEmail(), "Rappel — Portail ENSI", "mail/rappel", variables);
+    }
+
+    /**
+     * Notification d'un nouvel appel de cotisation a un membre (libelle, montant, date butoir).
+     */
+    @Async
+    public void envoyerAppelCotisation(Membre membre, AppelCotisation appel) {
+        if (!StringUtils.hasText(membre.getEmail())) {
+            return;
+        }
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("label", StringUtils.hasText(membre.getPrenoms())
+                ? membre.getPrenoms() + " " + membre.getNom() : membre.getNom());
+        variables.put("libelle", appel.getLibelle());
+        variables.put("montant", appel.getMontantAttendu());
+        variables.put("dateButoir", appel.getDateButoir());
+        variables.put("lien", urlApplication);
+        envoyer(membre.getEmail(), "Nouvel appel de cotisation — Portail ENSI", "mail/appel-cotisation", variables);
     }
 
     private void envoyer(String destinataire, String objet, String template, Map<String, Object> variables) {

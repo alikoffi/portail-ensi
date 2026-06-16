@@ -17,14 +17,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Paiement de cotisation rattache a un membre.
+ * Montant verse par un membre pour un appel de cotisation donne.
  */
 @Entity
 @Access(AccessType.FIELD)
-@Table(name = Cotisation.TABLE_NAME)
-public class Cotisation extends AbstractEntity {
+@Table(name = PaiementCotisation.TABLE_NAME)
+public class PaiementCotisation extends AbstractEntity {
 
-    public static final String TABLE_NAME = "cotisation";
+    public static final String TABLE_NAME = "paiement_cotisation";
     public static final String TABLE_ID = TABLE_NAME + ID;
     public static final String TABLE_SEQ = TABLE_ID + SEQ;
 
@@ -34,11 +34,12 @@ public class Cotisation extends AbstractEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "appel_id", nullable = false)
+    private AppelCotisation appel;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "membre_id", nullable = false)
     private Membre membre;
-
-    @Column(name = "periode", nullable = false)
-    private String periode;
 
     @Column(name = "montant", nullable = false)
     private BigDecimal montant;
@@ -49,12 +50,15 @@ public class Cotisation extends AbstractEntity {
     @Column(name = "note")
     private String note;
 
-    public Cotisation() {
+    public PaiementCotisation() {
     }
 
-    public void mettreAJour(Membre membre, String periode, BigDecimal montant, LocalDate datePaiement, String note) {
+    public PaiementCotisation(AppelCotisation appel, Membre membre) {
+        this.appel = appel;
         this.membre = membre;
-        this.periode = periode;
+    }
+
+    public void mettreAJour(BigDecimal montant, LocalDate datePaiement, String note) {
         this.montant = montant;
         this.datePaiement = datePaiement;
         this.note = note;
@@ -65,12 +69,12 @@ public class Cotisation extends AbstractEntity {
         return id;
     }
 
-    public Membre getMembre() {
-        return membre;
+    public AppelCotisation getAppel() {
+        return appel;
     }
 
-    public String getPeriode() {
-        return periode;
+    public Membre getMembre() {
+        return membre;
     }
 
     public BigDecimal getMontant() {

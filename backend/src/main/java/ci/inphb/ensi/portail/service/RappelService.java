@@ -62,8 +62,9 @@ public class RappelService {
                 .stream().map(EvenementDto::new).toList();
 
         List<String> membresEnRetard = membreFacade.recouvrement().getMembres().stream()
-                .filter(m -> m.getMoisEnRetard() > 0)
-                .map(m -> nomComplet(m) + " — " + m.getMoisEnRetard() + " mois")
+                .filter(m -> m.getAppelsEnRetard() > 0)
+                .map(m -> nomComplet(m) + " — " + m.getAppelsEnRetard() + " appel(s), reste "
+                        + m.getResteAPayer() + " FCFA")
                 .toList();
 
         List<Utilisateur> destinataires = utilisateurRepository.findByActifTrueAndEmailIsNotNull().stream()
