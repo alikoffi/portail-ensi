@@ -1,16 +1,18 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '@/core/services/auth.service';
 import { EvenementService } from '@/core/services/evenement.service';
 import { NotificationService } from '@/core/services/notification.service';
 import { ParametrageService } from '@/core/services/parametrage.service';
-import { Evenement } from '@/core/models/evenement.model';
+import { Evenement, StatutEvenement, etatEvenement } from '@/core/models/evenement.model';
+import { EvenementDetailComponent } from '@/shared/evenement-detail/evenement-detail.component';
 
 @Component({
   selector: 'app-planning',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, EvenementDetailComponent],
   templateUrl: './planning.component.html'
 })
 export class PlanningComponent implements OnInit {
@@ -19,6 +21,7 @@ export class PlanningComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly notification = inject(NotificationService);
   private readonly parametrageService = inject(ParametrageService);
+  private readonly router = inject(Router);
 
   readonly peutGerer = this.authService.peutGererPlanning;
   readonly typesEvenement = signal<string[]>([]);
@@ -37,6 +40,9 @@ export class PlanningComponent implements OnInit {
   readonly enregistrement = signal(false);
   readonly erreurFormulaire = signal<string | null>(null);
 
+  // Panneau de détail
+  readonly evenementSelectionne = signal<Evenement | null>(null);
+
   // Modal suppression
   readonly evenementASupprimer = signal<Evenement | null>(null);
   readonly suppressionEnCours = signal(false);
@@ -48,7 +54,8 @@ export class PlanningComponent implements OnInit {
     heure: [''],
     type: [''],
     lieu: [''],
-    description: ['']
+    description: [''],
+    statut: this.fb.control<StatutEvenement>('PLANIFIE')
   });
 
   readonly typesDisponibles = computed(() => {
@@ -97,21 +104,57 @@ export class PlanningComponent implements OnInit {
     });
   }
 
+  /** Libellé et couleur du badge d'état (calculé côté back). */
+  etat(ev: Evenement): { libelle: string; classe: string } {
+    return etatEvenement(ev);
+  }
+
   estPasse(dateEvent: string): boolean {
     return new Date(dateEvent) < new Date(new Date().toDateString());
+  }
+
+  // ---------- Détail ----------
+  ouvrirDetail(ev: Evenement): void {
+    this.evenementSelectionne.set(ev);
+  }
+
+  fermerDetail(): void {
+    this.evenementSelectionne.set(null);
+  }
+
+  changerStatut(statut: StatutEvenement): void {
+    const ev = this.evenementSelectionne();
+    if (!ev?.id) {
+      return;
+    }
+    this.evenementService.changerStatut(ev.id, statut).subscribe({
+      next: (maj) => {
+        this.evenementSelectionne.set(maj);
+        this.notification.succes('Statut mis à jour.');
+        this.charger();
+      },
+      error: () => this.notification.erreur('La mise à jour du statut a échoué.')
+    });
+  }
+
+  /** Ouvre la page des procès-verbaux en pré-remplissant l'évènement à rattacher. */
+  creerPv(ev: Evenement): void {
+    this.evenementSelectionne.set(null);
+    this.router.navigate(['/proces-verbaux'], { queryParams: { evenementId: ev.id } });
   }
 
   // ---------- Formulaire ----------
   ouvrirCreation(): void {
     this.enEdition.set(false);
     this.erreurFormulaire.set(null);
-    this.form.reset({ id: null, nom: '', dateEvent: '', heure: '', type: '', lieu: '', description: '' });
+    this.form.reset({ id: null, nom: '', dateEvent: '', heure: '', type: '', lieu: '', description: '', statut: 'PLANIFIE' });
     this.modalOuvert.set(true);
   }
 
   ouvrirEdition(ev: Evenement): void {
     this.enEdition.set(true);
     this.erreurFormulaire.set(null);
+    this.evenementSelectionne.set(null);
     this.form.reset({
       id: ev.id ?? null,
       nom: ev.nom,
@@ -119,7 +162,8 @@ export class PlanningComponent implements OnInit {
       heure: ev.heure ?? '',
       type: ev.type ?? '',
       lieu: ev.lieu ?? '',
-      description: ev.description ?? ''
+      description: ev.description ?? '',
+      statut: ev.statut ?? 'PLANIFIE'
     });
     this.modalOuvert.set(true);
   }
@@ -144,7 +188,8 @@ export class PlanningComponent implements OnInit {
       heure: valeur.heure || null,
       type: valeur.type || null,
       lieu: valeur.lieu || null,
-      description: valeur.description || null
+      description: valeur.description || null,
+      statut: valeur.statut
     };
 
     const requete = this.enEdition()

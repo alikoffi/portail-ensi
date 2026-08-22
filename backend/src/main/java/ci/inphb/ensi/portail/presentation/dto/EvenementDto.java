@@ -1,6 +1,8 @@
 package ci.inphb.ensi.portail.presentation.dto;
 
 import ci.inphb.ensi.portail.domain.Evenement;
+import ci.inphb.ensi.portail.enums.EtatEvenement;
+import ci.inphb.ensi.portail.enums.StatutEvenement;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -21,6 +23,17 @@ public class EvenementDto {
     private String lieu;
     private String description;
 
+    /** Statut saisi par le bureau (PLANIFIE par defaut). */
+    private StatutEvenement statut;
+
+    /** Etat affiche, derive du statut et de la date : lecture seule. */
+    private EtatEvenement etat;
+
+    /** Proces-verbal rattache, s'il existe (renseigne par la facade). */
+    private Long pvId;
+    private String pvObjet;
+    private long nbDocuments;
+
     public EvenementDto() {
     }
 
@@ -32,6 +45,8 @@ public class EvenementDto {
         this.type = e.getType();
         this.lieu = e.getLieu();
         this.description = e.getDescription();
+        this.statut = e.getStatut();
+        this.etat = EtatEvenement.calculer(e.getStatut(), e.getDateEvent());
     }
 
     public Long getId() {
@@ -88,5 +103,45 @@ public class EvenementDto {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public StatutEvenement getStatut() {
+        return statut;
+    }
+
+    public void setStatut(StatutEvenement statut) {
+        this.statut = statut;
+    }
+
+    public EtatEvenement getEtat() {
+        return etat;
+    }
+
+    public void setEtat(EtatEvenement etat) {
+        this.etat = etat;
+    }
+
+    public Long getPvId() {
+        return pvId;
+    }
+
+    public void setPvId(Long pvId) {
+        this.pvId = pvId;
+    }
+
+    public String getPvObjet() {
+        return pvObjet;
+    }
+
+    public void setPvObjet(String pvObjet) {
+        this.pvObjet = pvObjet;
+    }
+
+    public long getNbDocuments() {
+        return nbDocuments;
+    }
+
+    public void setNbDocuments(long nbDocuments) {
+        this.nbDocuments = nbDocuments;
     }
 }

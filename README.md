@@ -37,6 +37,7 @@ security · configuration · exception · enums · utils
 | **Lot 6** | Membres + cotisations (recouvrement) | ✅ fait |
 | **Lot 7** | Rôles étendus (Trésorier/Secrétaire) + comptes | ✅ fait |
 | **Lot 8** | Notifications email (bienvenue + rappels planifiés) | ✅ fait |
+| **Lot 9** | Documents joints (PV/évènements), lien évènement↔PV, statuts | ✅ fait |
 
 ## Démarrage local
 
@@ -50,6 +51,28 @@ CREATE DATABASE portail_ensi OWNER portail_ensi;
 Paramètres surchargeables par variables d'environnement : `DB_HOST`, `DB_PORT`,
 `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `SERVER_PORT`, `JWT_SECRET`, `CLIENT_URL`,
 `SPRING_PROFILE`.
+
+### Documents joints
+
+Les procès-verbaux et les évènements acceptent des pièces jointes (PDF, images,
+Word — 25 Mo max), servies uniquement par le backend (`/ws/document/...`), donc
+protégées par le JWT. Le backend de stockage est choisi par `app.storage.provider` :
+
+| Provider | Usage | Variables |
+|---|---|---|
+| `local` (défaut) | développement : disque | `STORAGE_BASE_DIR` (défaut `<dossier utilisateur>/portail-ensi/documents`) |
+| `b2` | production : Backblaze B2 (API compatible S3) | `B2_ENDPOINT`, `B2_BUCKET`, `B2_ACCESS_KEY`, `B2_SECRET_KEY`, `B2_REGION` |
+
+En local, les fichiers vivent **hors du dépôt**, sous le dossier de l'utilisateur :
+`~/portail-ensi/documents/pv/…` et `~/portail-ensi/documents/evenement/…`.
+Sur B2 c'est la même arborescence, en clés d'objet dans le bucket (`pv/…`,
+`evenement/…`) : aucun préfixe supplémentaire à configurer.
+
+L'endpoint et la région B2 vont de pair : `https://s3.us-west-004.backblazeb2.com`
+⟶ `us-west-004`. Le bucket reste **privé** : aucune URL de stockage n'est exposée
+au navigateur. En production, ne pas rester sur `local` — le disque des
+hébergeurs gratuits (Render) est éphémère et les fichiers seraient perdus à
+chaque déploiement.
 
 Le profil `dev` (par défaut) charge des données de démonstration via Flyway
 (`flyway/dev`). En production (`SPRING_PROFILE=prod`), seul le schéma est appliqué.

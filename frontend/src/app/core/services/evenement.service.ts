@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-import { Evenement } from '@/core/models/evenement.model';
+import { Evenement, StatutEvenement } from '@/core/models/evenement.model';
 
 @Injectable({ providedIn: 'root' })
 export class EvenementService {
@@ -19,6 +19,11 @@ export class EvenementService {
 
   modifier(evenement: Evenement): Observable<Evenement> {
     return this.http.put<Evenement>(`${this.base}/modifier`, evenement);
+  }
+
+  /** Cloture, annule ou reporte un evenement. */
+  changerStatut(id: number, statut: StatutEvenement): Observable<Evenement> {
+    return this.http.put<Evenement>(`${this.base}/statut/${id}`, null, { params: { statut } });
   }
 
   supprimer(id: number): Observable<void> {

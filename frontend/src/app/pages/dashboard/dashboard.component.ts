@@ -5,7 +5,9 @@ import { AuthService } from '@/core/services/auth.service';
 import { TableauBordService } from '@/core/services/tableau-bord.service';
 import { RappelService } from '@/core/services/rappel.service';
 import { NotificationService } from '@/core/services/notification.service';
-import { Statistique, TableauBord } from '@/core/models/tableau-bord.model';
+import { EvenementApercu, Statistique, TableauBord } from '@/core/models/tableau-bord.model';
+import { Evenement, etatEvenement } from '@/core/models/evenement.model';
+import { EvenementDetailComponent } from '@/shared/evenement-detail/evenement-detail.component';
 
 Chart.register(...registerables);
 
@@ -24,7 +26,7 @@ const COULEURS_CATEGORIES = [
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EvenementDetailComponent],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
@@ -40,6 +42,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   readonly erreur = signal<string | null>(null);
   readonly donnees = signal<TableauBord | null>(null);
   readonly stats = signal<Statistique | null>(null);
+
+  /** Évènement ouvert dans le panneau de détail (avec son PV). */
+  readonly evenementSelectionne = signal<EvenementApercu | null>(null);
 
   readonly canvasSolde = viewChild<ElementRef<HTMLCanvasElement>>('canvasSolde');
   readonly canvasDepenses = viewChild<ElementRef<HTMLCanvasElement>>('canvasDepenses');
@@ -109,6 +114,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.notification.erreur("L'envoi des rappels a échoué.");
       }
     });
+  }
+
+  /** Libellé et couleur du badge d'état. */
+  etat(ev: Evenement): { libelle: string; classe: string } {
+    return etatEvenement(ev);
+  }
+
+  ouvrirDetail(ev: EvenementApercu): void {
+    this.evenementSelectionne.set(ev);
+  }
+
+  fermerDetail(): void {
+    this.evenementSelectionne.set(null);
   }
 
   formaterMontant(valeur: number | undefined): string {

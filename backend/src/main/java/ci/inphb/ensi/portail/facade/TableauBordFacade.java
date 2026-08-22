@@ -6,8 +6,11 @@ import ci.inphb.ensi.portail.presentation.dto.EvenementDto;
 import ci.inphb.ensi.portail.presentation.dto.StatistiqueDto;
 import ci.inphb.ensi.portail.presentation.dto.TableauBordDto;
 import ci.inphb.ensi.portail.presentation.dto.TransactionDto;
+import ci.inphb.ensi.portail.repository.DocumentRepository;
 import ci.inphb.ensi.portail.repository.EvenementRepository;
+import ci.inphb.ensi.portail.repository.PvRepository;
 import ci.inphb.ensi.portail.repository.TransactionRepository;
+import ci.inphb.ensi.portail.utils.EvenementEnrichissement;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,15 +30,21 @@ import java.util.Map;
 @Service
 public class TableauBordFacade {
 
-    private static final int NB_PROCHAINS_EVENEMENTS = 3;
+    private static final int NB_EVENEMENTS_APERCU = 2;
 
     private final TransactionRepository transactionRepository;
     private final EvenementRepository evenementRepository;
+    private final PvRepository pvRepository;
+    private final DocumentRepository documentRepository;
 
     public TableauBordFacade(TransactionRepository transactionRepository,
-                             EvenementRepository evenementRepository) {
+                             EvenementRepository evenementRepository,
+                             PvRepository pvRepository,
+                             DocumentRepository documentRepository) {
         this.transactionRepository = transactionRepository;
         this.evenementRepository = evenementRepository;
+        this.pvRepository = pvRepository;
+        this.documentRepository = documentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -50,9 +59,20 @@ public class TableauBordFacade {
         List<EvenementDto> prochains = evenementRepository
                 .findByDateEventGreaterThanEqualOrderByDateEventAsc(aujourdHui)
                 .stream()
-                .limit(NB_PROCHAINS_EVENEMENTS)
+                .limit(NB_EVENEMENTS_APERCU)
                 .map(EvenementDto::new)
                 .toList();
+
+        List<EvenementDto> derniers = evenementRepository
+                .findByDateEventLessThanOrderByDateEventDescIdDesc(aujourdHui)
+                .stream()
+                .limit(NB_EVENEMENTS_APERCU)
+                .map(EvenementDto::new)
+                .toList();
+
+        // procès-verbal et pièces jointes, pour l'action « voir le PV » du tableau de bord
+        EvenementEnrichissement.appliquer(prochains, pvRepository, documentRepository);
+        EvenementEnrichissement.appliquer(derniers, pvRepository, documentRepository);
 
         List<TransactionDto> dernieres = transactionRepository
                 .findTop4ByOrderByDateTxDescIdDesc()
@@ -66,6 +86,7 @@ public class TableauBordFacade {
         dto.setSolde(recettes.subtract(depenses));
         dto.setEvenementsCeMois(evenementRepository.compterEntre(debutMois, finMois));
         dto.setProchainsEvenements(prochains);
+        dto.setDerniersEvenements(derniers);
         dto.setDernieresTransactions(dernieres);
         return dto;
     }

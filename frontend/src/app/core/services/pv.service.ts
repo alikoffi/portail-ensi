@@ -13,6 +13,10 @@ export class PvService {
     return this.http.get<Pv[]>(`${this.base}/lister`);
   }
 
+  detail(id: number): Observable<Pv> {
+    return this.http.get<Pv>(`${this.base}/detail/${id}`);
+  }
+
   enregistrer(pv: Pv): Observable<Pv> {
     return this.http.post<Pv>(`${this.base}/enregistrer`, pv);
   }

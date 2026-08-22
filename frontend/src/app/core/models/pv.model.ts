@@ -7,4 +7,7 @@ export interface Pv {
   ordreDuJour?: string | null;
   decisions?: string | null;
   signataires?: string | null;
+  evenementId?: number | null;
+  evenementNom?: string | null;
+  nbDocuments?: number;
 }

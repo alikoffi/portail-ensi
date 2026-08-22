@@ -59,7 +59,15 @@
           <div class="mt-2 flex items-center gap-x-4 gap-y-1 flex-wrap text-xs text-gray-500">
             <span><i class="pi pi-calendar text-[10px]"></i> {{ pv.datePv | date: 'dd MMM yyyy' }}</span>
             @if (pv.lieu) { <span class="truncate"><i class="pi pi-map-marker text-[10px]"></i> {{ pv.lieu }}</span> }
+            @if (pv.nbDocuments) {
+              <span class="flex items-center gap-1 text-ensi-700"><i class="pi pi-paperclip text-[10px]"></i> {{ pv.nbDocuments }}</span>
+            }
           </div>
+          @if (pv.evenementNom) {
+            <div class="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-ensi-50 text-ensi-700 text-[10px] max-w-full">
+              <i class="pi pi-calendar text-[9px]"></i> <span class="truncate">{{ pv.evenementNom }}</span>
+            </div>
+          }
           @if (pv.decisions) {
             <p class="mt-3 text-sm text-gray-500 line-clamp-2 whitespace-pre-line">{{ pv.decisions }}</p>
           }
@@ -97,6 +105,16 @@
             <span><i class="pi pi-calendar"></i> {{ pv.datePv | date: 'dd MMMM yyyy' }}</span>
             @if (pv.lieu) { <span><i class="pi pi-map-marker"></i> {{ pv.lieu }}</span> }
           </div>
+          @if (pv.evenementNom) {
+            <div class="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-ensi-50 text-ensi-700 text-sm">
+              <i class="pi pi-calendar"></i> Évènement rattaché : <span class="font-medium">{{ pv.evenementNom }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Pièces jointes -->
+        <div class="pt-4 border-t border-gray-100">
+          <app-documents [pvId]="pv.id" [peutGerer]="peutGerer()" />
         </div>
 
         @if (pv.presents) {
@@ -155,6 +173,21 @@
             @if (form.controls.datePv.touched && form.controls.datePv.invalid) { <p class="mt-1 text-xs text-red-600">Requis.</p> }
           </div>
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Évènement rattaché</label>
+          <select
+            [value]="form.controls.evenementId.value ?? ''"
+            (change)="changerEvenement($any($event.target).value)"
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none"
+          >
+            <option value="">— Aucun (réunion de bureau) —</option>
+            @for (ev of evenementsDisponibles(); track ev.id) {
+              <option [value]="ev.id">{{ ev.nom }} ({{ ev.dateEvent | date: 'dd/MM/yyyy' }})</option>
+            }
+          </select>
+          <p class="mt-1 text-xs text-gray-400">Un évènement ne peut porter qu'un seul procès-verbal.</p>
+        </div>
+
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Lieu</label>
           <input type="text" formControlName="lieu" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-ensi-500 focus:ring-2 focus:ring-ensi-500/20 outline-none" />

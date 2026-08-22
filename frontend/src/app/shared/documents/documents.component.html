@@ -1,0 +1,122 @@
+<div class="space-y-3">
+  <div class="flex items-center justify-between gap-3">
+    <h4 class="flex items-center gap-2 text-sm font-semibold text-ensi-700">
+      <i class="pi pi-paperclip"></i> {{ titre() }}
+      @if (documents().length) {
+        <span class="px-1.5 py-0.5 rounded-full bg-ensi-50 text-ensi-700 text-[10px]">{{ documents().length }}</span>
+      }
+    </h4>
+    @if (peutGerer()) {
+      <label
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-600 hover:bg-gray-50 cursor-pointer"
+        [class.opacity-60]="envoiEnCours()"
+      >
+        @if (envoiEnCours()) { <i class="pi pi-spin pi-spinner text-xs"></i> } @else { <i class="pi pi-upload text-xs"></i> }
+        Ajouter un fichier
+        <input type="file" class="hidden" [disabled]="envoiEnCours()" (change)="choisirFichier($event)" accept=".pdf,.jpg,.jpeg,.png,.webp,.docx" />
+      </label>
+    }
+  </div>
+
+  @if (chargement()) {
+    <div class="h-12 rounded-lg bg-gray-50 animate-pulse"></div>
+  } @else if (vide()) {
+    <p class="text-xs text-gray-400 py-3">
+      Aucun document joint.
+      @if (peutGerer()) { <span>Formats acceptés : PDF, image ou Word (25 Mo max).</span> }
+    </p>
+  } @else {
+    <ul class="divide-y divide-gray-100 border border-gray-100 rounded-lg">
+      @for (doc of documents(); track doc.id) {
+        <li class="flex items-center gap-3 px-3 py-2.5">
+          <i class="pi {{ icone(doc) }} text-ensi-600"></i>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-800 truncate">{{ doc.libelle || doc.nomOriginal }}</span>
+              @if (doc.principal) {
+                <span class="px-1.5 py-0.5 rounded-full bg-ensi-50 text-ensi-700 text-[10px] shrink-0">Principal</span>
+              }
+            </div>
+            <div class="text-[11px] text-gray-400">
+              {{ taille(doc.taille) }}
+              @if (doc.deposeLe) { · déposé le {{ doc.deposeLe | date: 'dd/MM/yyyy' }} }
+              @if (doc.deposePar) { par {{ doc.deposePar }} }
+            </div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            @if (estVisualisable(doc)) {
+              <button (click)="ouvrirApercu(doc)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-ensi-50 hover:text-ensi-700" title="Aperçu">
+                <i class="pi pi-eye text-sm"></i>
+              </button>
+            }
+            <button (click)="telecharger(doc)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-ensi-50 hover:text-ensi-700" title="Télécharger">
+              <i class="pi pi-download text-sm"></i>
+            </button>
+            @if (peutGerer()) {
+              <button (click)="demanderSuppression(doc)" class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600" title="Supprimer">
+                <i class="pi pi-trash text-sm"></i>
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<!-- ============ Aperçu ============ -->
+@if (apercuUrl(); as url) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/70" (click)="fermerApercu()">
+    <div
+      class="bg-white shadow-2xl flex flex-col overflow-hidden {{ pleinEcran() ? 'w-screen h-screen rounded-none' : 'w-[96vw] max-w-[1600px] h-[94vh] rounded-2xl' }}"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between gap-3 px-4 sm:px-5 py-2.5 border-b border-gray-100 shrink-0">
+        <h3 class="font-semibold text-gray-800 truncate">
+          <i class="pi {{ apercuDocument() ? icone(apercuDocument()!) : 'pi-file' }} text-ensi-600 mr-1.5"></i>
+          {{ apercuDocument()?.nomOriginal }}
+        </h3>
+        <div class="flex items-center gap-1 shrink-0">
+          <button
+            (click)="basculerPleinEcran()"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100"
+            [title]="pleinEcran() ? 'Réduire' : 'Plein écran'"
+          >
+            <i class="pi" [class.pi-window-minimize]="pleinEcran()" [class.pi-window-maximize]="!pleinEcran()"></i>
+          </button>
+          @if (apercuDocument(); as doc) {
+            <button (click)="telecharger(doc)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100">
+              <i class="pi pi-download"></i> <span class="hidden sm:inline">Télécharger</span>
+            </button>
+          }
+          <button (click)="fermerApercu()" class="text-gray-400 hover:text-gray-600 p-2" title="Fermer (Échap)"><i class="pi pi-times"></i></button>
+        </div>
+      </div>
+
+      @if (apercuEstImage()) {
+        <div class="flex-1 min-h-0 flex items-center justify-center bg-gray-900 p-2">
+          <img [src]="apercuUrlBrute()" alt="{{ apercuDocument()?.nomOriginal }}" class="max-w-full max-h-full object-contain" />
+        </div>
+      } @else {
+        <iframe [src]="url" class="flex-1 min-h-0 w-full border-0" title="Aperçu du document"></iframe>
+      }
+    </div>
+  </div>
+}
+
+<!-- ============ Suppression ============ -->
+@if (aSupprimer(); as doc) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40" (click)="annulerSuppression()">
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 text-red-600 mx-auto"><i class="pi pi-exclamation-triangle text-xl"></i></div>
+      <h2 class="mt-4 text-center font-bold text-gray-800">Supprimer ce document ?</h2>
+      <p class="mt-1 text-center text-sm text-gray-500">« {{ doc.nomOriginal }} » sera définitivement supprimé.</p>
+      <div class="mt-6 flex items-center gap-3">
+        <button (click)="annulerSuppression()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Annuler</button>
+        <button (click)="confirmerSuppression()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
+          <i class="pi pi-trash"></i> Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+}

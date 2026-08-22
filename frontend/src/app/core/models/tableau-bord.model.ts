@@ -1,12 +1,7 @@
-export interface EvenementApercu {
-  id: number;
-  nom: string;
-  dateEvent: string;
-  heure: string | null;
-  type: string | null;
-  lieu: string | null;
-  description: string | null;
-}
+import { Evenement } from '@/core/models/evenement.model';
+
+/** Un evenement affiche sur le tableau de bord : meme forme que dans le planning. */
+export type EvenementApercu = Evenement & { id: number };
 
 export interface TransactionApercu {
   id: number;
@@ -24,6 +19,7 @@ export interface TableauBord {
   depensesTotales: number;
   evenementsCeMois: number;
   prochainsEvenements: EvenementApercu[];
+  derniersEvenements: EvenementApercu[];
   dernieresTransactions: TransactionApercu[];
 }
 
