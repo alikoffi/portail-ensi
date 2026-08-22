@@ -13,6 +13,7 @@ public class TableauBordDto {
     private BigDecimal depensesTotales;
     private long evenementsCeMois;
     private List<EvenementDto> prochainsEvenements;
+    private List<EvenementDto> derniersEvenements;
     private List<TransactionDto> dernieresTransactions;
 
     public BigDecimal getSolde() {
@@ -53,6 +54,14 @@ public class TableauBordDto {
 
     public void setProchainsEvenements(List<EvenementDto> prochainsEvenements) {
         this.prochainsEvenements = prochainsEvenements;
+    }
+
+    public List<EvenementDto> getDerniersEvenements() {
+        return derniersEvenements;
+    }
+
+    public void setDerniersEvenements(List<EvenementDto> derniersEvenements) {
+        this.derniersEvenements = derniersEvenements;
     }
 
     public List<TransactionDto> getDernieresTransactions() {

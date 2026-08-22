@@ -26,6 +26,10 @@ public class PortailException extends RuntimeException {
         return new PortailException(HttpStatus.NOT_FOUND, message);
     }
 
+    public static PortailException requeteInvalide(String message) {
+        return new PortailException(HttpStatus.BAD_REQUEST, message);
+    }
+
     public static PortailException conflit(String message) {
         return new PortailException(HttpStatus.CONFLICT, message);
     }

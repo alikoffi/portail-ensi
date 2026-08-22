@@ -7,6 +7,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -32,6 +33,12 @@ public class GlobalExceptionHandler {
         }
         corps.put("erreurs", erreurs);
         return ResponseEntity.badRequest().body(corps);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleFichierTropVolumineux(MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(corps(HttpStatus.PAYLOAD_TOO_LARGE, "Fichier trop volumineux (25 Mo maximum)"));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

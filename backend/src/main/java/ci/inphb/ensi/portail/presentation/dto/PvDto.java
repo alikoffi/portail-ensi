@@ -22,6 +22,13 @@ public class PvDto {
     private String decisions;
     private String signataires;
 
+    /** Evenement du planning dont ce PV rend compte (facultatif). */
+    private Long evenementId;
+    private String evenementNom;
+
+    /** Nombre de pieces jointes (renseigne par la facade). */
+    private long nbDocuments;
+
     public PvDto() {
     }
 
@@ -34,6 +41,10 @@ public class PvDto {
         this.ordreDuJour = pv.getOrdreDuJour();
         this.decisions = pv.getDecisions();
         this.signataires = pv.getSignataires();
+        if (pv.getEvenement() != null) {
+            this.evenementId = pv.getEvenement().getId();
+            this.evenementNom = pv.getEvenement().getNom();
+        }
     }
 
     public Long getId() {
@@ -98,5 +109,29 @@ public class PvDto {
 
     public void setSignataires(String signataires) {
         this.signataires = signataires;
+    }
+
+    public Long getEvenementId() {
+        return evenementId;
+    }
+
+    public void setEvenementId(Long evenementId) {
+        this.evenementId = evenementId;
+    }
+
+    public String getEvenementNom() {
+        return evenementNom;
+    }
+
+    public void setEvenementNom(String evenementNom) {
+        this.evenementNom = evenementNom;
+    }
+
+    public long getNbDocuments() {
+        return nbDocuments;
+    }
+
+    public void setNbDocuments(long nbDocuments) {
+        this.nbDocuments = nbDocuments;
     }
 }

@@ -1,6 +1,7 @@
 package ci.inphb.ensi.portail.controller;
 
 import ci.inphb.ensi.portail.configuration.logger.Logged;
+import ci.inphb.ensi.portail.enums.StatutEvenement;
 import ci.inphb.ensi.portail.facade.EvenementFacade;
 import ci.inphb.ensi.portail.presentation.dto.EvenementDto;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -52,6 +54,13 @@ public class EvenementController {
     @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
     public EvenementDto modifier(@Valid @RequestBody EvenementDto dto) {
         return evenementFacade.modifier(dto);
+    }
+
+    @PutMapping("/statut/{id}")
+    @Logged
+    @PreAuthorize("hasAnyRole('ADMIN','SECRETAIRE')")
+    public EvenementDto changerStatut(@PathVariable Long id, @RequestParam StatutEvenement statut) {
+        return evenementFacade.changerStatut(id, statut);
     }
 
     @DeleteMapping("/supprimer/{id}")

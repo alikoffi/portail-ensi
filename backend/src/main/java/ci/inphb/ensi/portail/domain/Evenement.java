@@ -1,9 +1,12 @@
 package ci.inphb.ensi.portail.domain;
 
+import ci.inphb.ensi.portail.enums.StatutEvenement;
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -47,17 +50,25 @@ public class Evenement extends AbstractEntity {
     @Column(name = "description")
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut", nullable = false)
+    private StatutEvenement statut = StatutEvenement.PLANIFIE;
+
     public Evenement() {
     }
 
-    /** Met a jour les champs modifiables de l'evenement. */
-    public void mettreAJour(String nom, LocalDate dateEvent, String heure, String type, String lieu, String description) {
+    /** Met a jour les champs modifiables de l'evenement (statut null : inchange). */
+    public void mettreAJour(String nom, LocalDate dateEvent, String heure, String type, String lieu,
+                            String description, StatutEvenement statut) {
         this.nom = nom;
         this.dateEvent = dateEvent;
         this.heure = heure;
         this.type = type;
         this.lieu = lieu;
         this.description = description;
+        if (statut != null) {
+            this.statut = statut;
+        }
     }
 
     @Override
@@ -111,5 +122,13 @@ public class Evenement extends AbstractEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public StatutEvenement getStatut() {
+        return statut;
+    }
+
+    public void setStatut(StatutEvenement statut) {
+        this.statut = statut;
     }
 }

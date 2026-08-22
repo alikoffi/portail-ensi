@@ -16,6 +16,9 @@ public interface EvenementRepository extends JpaRepository<Evenement, Long> {
     /** Evenements a venir, du plus proche au plus lointain. */
     List<Evenement> findByDateEventGreaterThanEqualOrderByDateEventAsc(LocalDate date);
 
+    /** Evenements passes, du plus recent au plus ancien. */
+    List<Evenement> findByDateEventLessThanOrderByDateEventDescIdDesc(LocalDate date);
+
     /** Evenements dans un intervalle (rappels). */
     List<Evenement> findByDateEventBetweenOrderByDateEventAsc(LocalDate debut, LocalDate fin);
 
