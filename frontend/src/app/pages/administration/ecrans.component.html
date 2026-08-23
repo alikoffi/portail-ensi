@@ -1,0 +1,75 @@
+<div class="max-w-3xl mx-auto space-y-6">
+  <!-- En-tête -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Écrans</h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Masquer un écran le retire à <strong>tous les utilisateurs</strong>, y compris à ceux dont le rôle
+      l'autorisait.
+    </p>
+  </div>
+
+  @if (erreur()) {
+    <div class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm">
+      <i class="pi pi-exclamation-circle"></i> {{ erreur() }}
+    </div>
+  }
+
+  @if (chargement()) {
+    <div class="space-y-2">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div class="h-16 rounded-xl bg-gray-100 animate-pulse"></div>
+      }
+    </div>
+  } @else {
+    <ul class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
+      @for (ecran of ecrans(); track ecran.code) {
+        <li class="flex items-center gap-4 px-5 py-4">
+          <span
+            class="flex items-center justify-center w-10 h-10 rounded-xl shrink-0"
+            [class.bg-ensi-50]="ecran.visible"
+            [class.text-ensi-700]="ecran.visible"
+            [class.bg-gray-100]="!ecran.visible"
+            [class.text-gray-400]="!ecran.visible"
+          >
+            <i class="pi" [class.pi-eye]="ecran.visible" [class.pi-eye-slash]="!ecran.visible"></i>
+          </span>
+
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-medium text-gray-800">{{ ecran.libelle }}</span>
+              @if (ecran.verrouille) {
+                <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px]">
+                  <i class="pi pi-lock text-[9px]"></i> Toujours visible
+                </span>
+              }
+            </div>
+            <div class="text-xs text-gray-400">
+              {{ ecran.code }}
+              @if (ecran.verrouille) {
+                <span>· indispensable pour rétablir les autres écrans</span>
+              } @else if (!ecran.visible) {
+                <span class="text-amber-600">· masqué pour tout le monde</span>
+              }
+            </div>
+          </div>
+
+          <!-- Interrupteur -->
+          <button
+            type="button"
+            (click)="basculer(ecran)"
+            [disabled]="ecran.verrouille || enCours() === ecran.code"
+            [attr.aria-pressed]="ecran.visible"
+            [title]="ecran.verrouille ? 'Cet écran ne peut pas être masqué' : (ecran.visible ? 'Masquer' : 'Afficher')"
+            class="relative w-12 h-6 rounded-full transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            [class.bg-ensi-600]="ecran.visible"
+            [class.bg-gray-300]="!ecran.visible"
+          >
+            <span
+              class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all {{ ecran.visible ? 'left-6' : 'left-0.5' }}"
+            ></span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

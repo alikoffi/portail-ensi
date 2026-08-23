@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '@environments/environment';
+import { EcranService } from '@/core/services/ecran.service';
 import { LoginRequest, LoginResponse, RoleUtilisateur } from '@/core/models/utilisateur.model';
 
 const TOKEN_KEY = 'portail_ensi_token';
@@ -12,6 +13,7 @@ const USER_KEY = 'portail_ensi_user';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly ecranService = inject(EcranService);
 
   /** Utilisateur courant (signal réactif). */
   private readonly _user = signal<LoginResponse | null>(this.lireUtilisateurStocke());
@@ -53,6 +55,8 @@ export class AuthService {
   }
 
   logout(): void {
+    // La configuration des ecrans est propre a la session : le suivant rechargera la sienne.
+    this.ecranService.reinitialiser();
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     this._user.set(null);

@@ -1,5 +1,7 @@
 package ci.inphb.ensi.portail.security;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,5 +31,22 @@ public final class SecurityUtils {
             }
         }
         return DEFAULT_LOGIN;
+    }
+
+    /**
+     * @return vrai si l'utilisateur courant est administrateur.
+     */
+    public static boolean estAdministrateur() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        if (context == null || context.getAuthentication() == null) {
+            return false;
+        }
+        Authentication authentication = context.getAuthentication();
+        for (GrantedAuthority autorite : authentication.getAuthorities()) {
+            if ("ROLE_ADMIN".equals(autorite.getAuthority())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

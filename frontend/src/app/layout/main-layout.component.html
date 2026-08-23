@@ -19,9 +19,8 @@
 
     <!-- Navigation -->
     <nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-      @for (item of menu; track item.libelle) {
-        @if (!item.adminSeulement || estAdmin()) {
-          @if (item.enfants) {
+      @for (item of menu(); track item.libelle) {
+        @if (item.enfants) {
             <!-- Groupe avec sous-menus -->
             <button
               (click)="basculerGroupe(item.libelle)"
@@ -40,12 +39,15 @@
                     class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/65 hover:bg-white/10 hover:text-white transition-colors"
                   >
                     <i class="pi {{ enfant.icone }} text-xs"></i>
-                    <span class="text-[13px] font-medium">{{ enfant.libelle }}</span>
+                    <span class="text-[13px] font-medium flex-1">{{ enfant.libelle }}</span>
+                    @if (estMasque(enfant)) {
+                      <i class="pi pi-eye-slash text-[10px] text-amber-300" title="Masqué pour les autres rôles"></i>
+                    }
                   </a>
                 }
               </div>
             }
-          } @else {
+        } @else {
             <a
               [routerLink]="item.route"
               routerLinkActive="bg-white/15 text-white"
@@ -53,9 +55,11 @@
               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/75 hover:bg-white/10 hover:text-white transition-colors"
             >
               <i class="pi {{ item.icone }} text-base"></i>
-              <span class="text-sm font-medium">{{ item.libelle }}</span>
+              <span class="text-sm font-medium flex-1">{{ item.libelle }}</span>
+              @if (estMasque(item)) {
+                <i class="pi pi-eye-slash text-[11px] text-amber-300" title="Masqué pour les autres rôles"></i>
+              }
             </a>
-          }
         }
       }
     </nav>
